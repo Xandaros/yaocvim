@@ -26,7 +26,7 @@ local screen_dim = {gpu.getResolution()}
 local function render()
 	gpu.fill(0, 0, screen_dim[1], screen_dim[2] + 1, " ")
 
-	local active_tab = tabs.tabs[tabs.active_tab]
+	local active_tab = Tab.getCurrent()
 	active_tab:render()
 
 	modes.shared.mode.render()
@@ -38,11 +38,8 @@ local function createInitialTab()
 	local left_reserve = 0
 
 	local first_buffer = Buffer.new()
-	first_buffer.content = {
-		"Hello",
-		"World",
-		"fyurhfuhfrhghrughrhgrhfueruhreufherfherhuerhuerhguerhgurhgurhgurhguhruyghrhguerhgerhgerg"
-	}
+	first_buffer.active = true
+	first_buffer.content = {""}
 
 	Tab.new(first_buffer, left_reserve + 1, 1, screen_dim[1] - left_reserve - 1, screen_dim[2] - bottom_reserve - 1)
 end

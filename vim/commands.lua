@@ -13,14 +13,14 @@ ret.commands = {}
 local commands = ret.commands
 
 local quit = { 
-	aliases = {"q"},
+	aliases = {"quit", "q"},
 	execute = function(self, exclamation, args)
 		os.exit()
 	end
 }
 
 local edit = {
-	aliases = {"e"},
+	aliases = {"edit", "e"},
 	execute = function(self, exclamation, args)
 		local filename = args[1]
 		local window = Tab.getCurrent():getWindow()
@@ -55,7 +55,26 @@ local edit = {
 		end
 
 		buffer.file = filename
+		buffer.name = filename
 		window.buffer = buffer
+		buffers.updateActive()
+	end
+}
+
+local buffers = {
+	aliases = {"buffers", "ls"},
+	execute = function(self, exclamation, args)
+		local stts = status.status
+
+		for k, v in pairs(buffers.buffers) do
+			local current = Tab.getCurrent():getWindow().buffer == v and "%" or " "
+			local active = v.active and "a" or "h"
+			local name = "\"" .. v.name .. "\""
+			local line = 1
+			local line = string.format("%3d %s%s   %-30s Line %d", v.id, current, active, name, line)
+			stts = stts .. "\n" .. line
+		end
+		status.setStatus(stts)
 	end
 }
 
@@ -63,6 +82,8 @@ commands["quit"] = quit
 commands["q"] = quit
 commands["edit"] = edit
 commands["e"] = edit
+commands["buffers"] = buffers
+commands["ls"] = buffers
 
 function ret.execute(input)
 	local split = {}
