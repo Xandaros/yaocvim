@@ -31,7 +31,7 @@ function Window:render()
 	end
 
 	local cur_y = self.y
-	for idx=self.screen[2], self.h do
+	for idx=self.screen[2], self.h + 1 do
 		local line = buffer.content[idx]
 		if line ~= nil then
 			local visible = line:sub(self.screen[1], self.screen[1] + self.w)

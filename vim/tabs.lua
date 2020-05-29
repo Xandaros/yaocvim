@@ -30,10 +30,18 @@ function Tab.new(buffer, x, y, w, h)
 	return ret
 end
 
+function Tab.getCurrent()
+	return mod.tabs[mod.active_tab]
+end
+
 function Tab:render()
 	for k, v in ipairs(self.windows) do
 		v:render()
 	end
+end
+
+function Tab:getWindow()
+	return self.windows[self.active_window]
 end
 
 return mod

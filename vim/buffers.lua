@@ -12,6 +12,7 @@ function Buffer.new(content)
 	ret.content = content or {}
 	ret.id = #mod.buffers + 1
 	ret.name = "[No Name]"
+	ret.file = nil
 
 	mod.buffers[ret.id] = ret
 	return ret
