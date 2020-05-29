@@ -12,7 +12,6 @@ ret.command_buffer = ""
 local function normalMode()
 	ret.command_buffer = ""
 	shared.mode = require("vim/modes/normal")
-	status.setStatus("")
 end
 
 function ret.keyPress(charcode, keycode)
@@ -20,6 +19,7 @@ function ret.keyPress(charcode, keycode)
 	-- Backspace
 	if char == "\b" then
 		if #ret.command_buffer == 0 then
+			status.setStatus("")
 			normalMode()
 			return
 		end
