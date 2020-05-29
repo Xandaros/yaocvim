@@ -24,6 +24,12 @@ function Window.new(buffer, x, y, w, h)
 	return ret
 end
 
+--- Prepare a string for rendering
+local function prepareString(s)
+	local result, _ = s:gsub("\t", "    ")
+	return result
+end
+
 function Window:render()
 	local buffer = self.buffer
 	if #buffer.content == 0 then
@@ -35,7 +41,7 @@ function Window:render()
 		local line = buffer.content[idx]
 		if line ~= nil then
 			local visible = line:sub(self.screen[1], self.screen[1] + self.w)
-			gpu.set(self.x, cur_y, visible)
+			gpu.set(self.x, cur_y, prepareString(visible))
 		end
 		cur_y = cur_y + 1
 	end
