@@ -54,8 +54,8 @@ local edit = {
 			file:close()
 		end
 
+		buffer.file = filename
 		window.buffer = buffer
-		status.setStatus(filename)
 	end
 }
 
