@@ -1,6 +1,7 @@
 local keyboard = require("keyboard")
 
 local shared = require("vim/modes/shared")
+local status = require("vim/status")
 
 local ret = {}
 
@@ -19,7 +20,8 @@ function ret.keyPress(charcode, keycode)
 	ret.interpret_command()
 end
 
-function ret.render()
+function ret.onSwitch()
+	status.setStatus("")
 end
 
 return ret

@@ -29,7 +29,9 @@ local function render()
 	local active_tab = Tab.getCurrent()
 	active_tab:render()
 
-	modes.shared.mode.render()
+	if modes.shared.mode.render ~= nil then
+		modes.shared.mode.render()
+	end
 	status.render()
 end
 

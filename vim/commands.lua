@@ -72,7 +72,7 @@ local buffers = {
 			local name = "\"" .. v.name .. "\""
 			local line = 1
 			local line = string.format("%3d %s%s   %-30s Line %d", v.id, current, active, name, line)
-			stts = stts .. "\n" .. line
+			stts[#stts + 1] = line
 		end
 		status.setStatus(stts)
 	end

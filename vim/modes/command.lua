@@ -41,7 +41,7 @@ function ret.keyPress(charcode, keycode)
 end
 
 function ret.render()
-	 status.setStatus(":" .. ret.command_buffer)
+	status.setBottom(":" .. ret.command_buffer)
 end
 
 return ret
