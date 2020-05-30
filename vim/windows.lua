@@ -3,6 +3,8 @@ local gpu = component.gpu
 
 local util = require("vim/util")
 
+local screen_dim = {gpu.getResolution()}
+
 local mod = {}
 
 mod.Window = {}
@@ -41,6 +43,27 @@ function Window:textToScreenCoords(coords)
 	return {ret_x, ret_y}
 end
 
+function Window:scrollX(amount)
+    self.screen[1] = self.screen[1] + amount
+end
+
+function Window:scrollY(amount)
+    self.screen[2] = self.screen[2] + amount
+end
+
+function Window:updateScroll()
+    local cursor = self:textToScreenCoords(self.cursor)
+    if cursor[1] < 1 then
+        self:scrollX(cursor[1] - 1)
+    elseif cursor[1] > self.w + 1 then
+        self:scrollX(cursor[1] - self.w - 1)
+    elseif cursor[2] < 1 then
+        self:scrollY(cursor[2] - 1)
+    elseif cursor[2] > self.h + 1 then
+        self:scrollY(cursor[2] - self.h - 1)
+    end
+end
+
 function Window:render()
 	local buffer = self.buffer
 	if #buffer.content == 0 then
@@ -48,7 +71,7 @@ function Window:render()
 	end
 
 	local cur_y = self.y
-	for idx=self.screen[2], self.h + 1 do
+	for idx=self.screen[2], self.screen[2] + self.h do
 		local line = buffer.content[idx]
 		if line ~= nil then
 			local visible = line:sub(self.screen[1], self.screen[1] + self.w)
@@ -72,7 +95,7 @@ function Window:render()
 		or string.byte(char_under_cursor) >= 127 then
 		char_under_cursor = " "
 	end
-	gpu.set(cursor_x, cursor_pos[2], char_under_cursor)
+	gpu.set(cursor_pos[1], cursor_pos[2], char_under_cursor)
 	util.invertColor()
 end
 

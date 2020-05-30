@@ -19,6 +19,7 @@ function mod.executeNormal(cmd)
 		local window = Tab.getCurrent():getWindow()
 		local new_cur = mod.motions[first_char].execute(window)
 		window.cursor = new_cur
+        window:updateScroll()
 		return true
 	end
 	return true
