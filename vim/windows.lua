@@ -59,15 +59,20 @@ function Window:render()
 
 	-- Render cursor
 	util.invertColor()
-	cursor_pos = self:textToScreenCoords(self.cursor)
-	local char_under_cursor = buffer.content[self.cursor[2]]:sub(self.cursor[1], self.cursor[1])
+    local cur_line = buffer.content[self.cursor[2]]
+    local cursor_x = self.cursor[1]
+    if cursor_x > #cur_line then
+        cursor_x = math.max(#cur_line, 1)
+    end
+	cursor_pos = self:textToScreenCoords({cursor_x, self.cursor[2]})
+	local char_under_cursor = cur_line:sub(cursor_x, cursor_x)
 	if char_under_cursor == nil
 		or char_under_cursor == ""
 		or string.byte(char_under_cursor) <= 32
 		or string.byte(char_under_cursor) >= 127 then
 		char_under_cursor = " "
 	end
-	gpu.set(cursor_pos[1], cursor_pos[2], char_under_cursor)
+	gpu.set(cursor_x, cursor_pos[2], char_under_cursor)
 	util.invertColor()
 end
 

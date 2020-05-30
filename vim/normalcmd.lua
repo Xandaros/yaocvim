@@ -24,15 +24,30 @@ function mod.executeNormal(cmd)
 	return true
 end
 
-local function validateCursor(window, cursor)
+local function validateCursorX(window, cursor)
+    if cursor == nil then
+        return nil
+    end
+	local buffer = window.buffer
+	if cursor[1] < 1 or cursor[1] > #buffer.content[cursor[2]] then
+		return nil
+	end
+    return cursor
+end
+
+local function validateCursorY(window, cursor)
+    if cursor == nil then
+        return nil
+    end
 	local buffer = window.buffer
 	if cursor[2] < 1 or cursor[2] > #buffer.content then
 		return nil
 	end
-	if cursor[1] < 1 then
-		return nil
-	end
 	return cursor
+end
+
+local function validateCursorXY(window, cursor)
+    return validateCursorX(window, validateCursorY(window, cursor))
 end
 
 registerMotion({
@@ -42,7 +57,7 @@ registerMotion({
 	execute = function(window)
 		local cur_pos = window.cursor
 		local new_pos = {cur_pos[1], cur_pos[2] + 1}
-		return validateCursor(window, new_pos) or cur_pos
+		return validateCursorY(window, new_pos) or cur_pos
 	end
 })
 
@@ -53,7 +68,7 @@ registerMotion({
 	execute = function(window)
 		local cur_pos = window.cursor
 		local new_pos = {cur_pos[1], cur_pos[2] - 1}
-		return validateCursor(window, new_pos) or cur_pos
+		return validateCursorY(window, new_pos) or cur_pos
 	end
 })
 
@@ -64,7 +79,7 @@ registerMotion({
 	execute = function(window)
 		local cur_pos = window.cursor
 		local new_pos = {cur_pos[1] - 1, cur_pos[2]}
-		return validateCursor(window, new_pos) or cur_pos
+		return validateCursorXY(window, new_pos) or cur_pos
 	end
 })
 
@@ -75,7 +90,7 @@ registerMotion({
 	execute = function(window)
 		local cur_pos = window.cursor
 		local new_pos = {cur_pos[1] + 1, cur_pos[2]}
-		return validateCursor(window, new_pos) or cur_pos
+		return validateCursorXY(window, new_pos) or cur_pos
 	end
 })
 
