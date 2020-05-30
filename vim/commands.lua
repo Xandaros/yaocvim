@@ -12,14 +12,20 @@ local ret = {}
 ret.commands = {}
 local commands = ret.commands
 
-local quit = { 
+local function registerCommand(cmdspec)
+	for _, alias in ipairs(cmdspec.aliases) do
+		commands[alias] = cmdspec
+	end
+end
+
+registerCommand({
 	aliases = {"quit", "q"},
 	execute = function(self, exclamation, args)
 		os.exit()
 	end
-}
+})
 
-local edit = {
+registerCommand({
 	aliases = {"edit", "e"},
 	execute = function(self, exclamation, args)
 		local filename = args[1]
@@ -59,9 +65,9 @@ local edit = {
 		window.buffer = buffer
 		buffers.updateActive()
 	end
-}
+})
 
-local buffers = {
+registerCommand({
 	aliases = {"buffers", "ls"},
 	execute = function(self, exclamation, args)
 		local stts = status.status
@@ -76,14 +82,7 @@ local buffers = {
 		end
 		status.setStatus(stts)
 	end
-}
-
-commands["quit"] = quit
-commands["q"] = quit
-commands["edit"] = edit
-commands["e"] = edit
-commands["buffers"] = buffers
-commands["ls"] = buffers
+})
 
 function ret.execute(input)
 	local split = {}
