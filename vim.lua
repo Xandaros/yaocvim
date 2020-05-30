@@ -1,8 +1,8 @@
 -- Unload all loaded vim modules to prevent persistent state across restarts
 for k, v in pairs(package.loaded) do
-	if k:sub(1, 3) == "vim" then
-		package.loaded[k] = nil
-	end
+    if k:sub(1, 3) == "vim" then
+        package.loaded[k] = nil
+    end
 end
 
 local component = require("component")
@@ -24,36 +24,36 @@ local Window = windows.Window
 local screen_dim = {gpu.getResolution()}
 
 local function render()
-	gpu.fill(0, 0, screen_dim[1] + 1, screen_dim[2] + 1, " ")
+    gpu.fill(0, 0, screen_dim[1] + 1, screen_dim[2] + 1, " ")
 
-	local active_tab = Tab.getCurrent()
-	active_tab:render()
+    local active_tab = Tab.getCurrent()
+    active_tab:render()
 
-	if modes.shared.mode.render ~= nil then
-		modes.shared.mode.render()
-	end
-	status.render()
+    if modes.shared.mode.render ~= nil then
+        modes.shared.mode.render()
+    end
+    status.render()
 end
 
 local function createInitialTab()
-	local bottom_reserve = 1
-	local left_reserve = 0
+    local bottom_reserve = 1
+    local left_reserve = 0
 
-	local first_buffer = Buffer.new()
-	first_buffer.active = true
-	first_buffer.content = {""}
+    local first_buffer = Buffer.new()
+    first_buffer.active = true
+    first_buffer.content = {""}
 
-	Tab.new(first_buffer, left_reserve + 1, 1, screen_dim[1] - left_reserve - 1, screen_dim[2] - bottom_reserve - 1)
+    Tab.new(first_buffer, left_reserve + 1, 1, screen_dim[1] - left_reserve - 1, screen_dim[2] - bottom_reserve - 1)
 end
 
 local function main()
-	createInitialTab()
-	render()
-	while (true) do
-		_, _, charcode, keycode, _ = event.pull(nil, "key_down")
-		modes.shared.mode.keyPress(charcode, keycode)
-		render()
-	end
+    createInitialTab()
+    render()
+    while (true) do
+        _, _, charcode, keycode, _ = event.pull(nil, "key_down")
+        modes.shared.mode.keyPress(charcode, keycode)
+        render()
+    end
 end
 
 main()

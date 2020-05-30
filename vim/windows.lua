@@ -1,6 +1,8 @@
 local component = require("component")
 local gpu = component.gpu
 
+local util = require("vim/util")
+
 local mod = {}
 
 mod.Window = {}
@@ -30,6 +32,15 @@ local function prepareString(s)
 	return result
 end
 
+--- Turn a location in the text to a coordinate on screen
+--- May be out of bounds if the location is not visible
+function Window:textToScreenCoords(coords)
+	local x, y = table.unpack(coords)
+	local ret_x = x - self.screen[1] + 1
+	local ret_y = y - self.screen[2] + 1
+	return {ret_x, ret_y}
+end
+
 function Window:render()
 	local buffer = self.buffer
 	if #buffer.content == 0 then
@@ -45,6 +56,19 @@ function Window:render()
 		end
 		cur_y = cur_y + 1
 	end
+
+	-- Render cursor
+	util.invertColor()
+	cursor_pos = self:textToScreenCoords(self.cursor)
+	local char_under_cursor = buffer.content[self.cursor[2]]:sub(self.cursor[1], self.cursor[1])
+	if char_under_cursor == nil
+		or char_under_cursor == ""
+		or string.byte(char_under_cursor) <= 32
+		or string.byte(char_under_cursor) >= 127 then
+		char_under_cursor = " "
+	end
+	gpu.set(cursor_pos[1], cursor_pos[2], char_under_cursor)
+	util.invertColor()
 end
 
 return mod
