@@ -101,4 +101,15 @@ registerMotion({
 	end
 })
 
+registerMotion({
+    key = "$",
+    linewise = false,
+    exclusive = false,
+    execute = function(window)
+		local cursor = window.cursor
+        local new_x = #window.buffer.content[cursor[2]]
+		return {new_x, cursor[2]}
+    end
+})
+
 return mod
