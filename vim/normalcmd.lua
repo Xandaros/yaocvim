@@ -12,13 +12,28 @@ local function registerMotion(motionspec)
     mod.motions[motionspec.key] = motionspec
 end
 
+local function findCandidates(str, tbl)
+    local ret = {}
+    for k, v in pairs(tbl) do
+        if k:sub(1, #str) == str then
+            ret[#ret + 1] = v
+        end
+    end
+    return ret
+end
+
 function mod.executeNormal(cmd)
     local first_char = cmd:sub(1, 1)
     if mod.operators[first_char] then
         return mod.operators[first_char].execute()
-    elseif mod.motions[first_char] then
+    end
+    local candidate_motions = findCandidates(cmd, mod.motions)
+    if #candidate_motions == 1 then
+        if candidate_motions[1].key ~= cmd then
+            return false
+        end
         local window = Tab.getCurrent():getWindow()
-        local new_cur = mod.motions[first_char].execute(window)
+        local new_cur = candidate_motions[1].execute(window)
         if new_cur ~= nil then
             window.cursor = new_cur
             window:updateScroll()
@@ -26,6 +41,8 @@ function mod.executeNormal(cmd)
         else
             return false
         end
+    elseif #candidate_motions > 1 then
+        return false
     end
     return true
 end
@@ -154,6 +171,17 @@ registerMotion({
     execute = function(window)
         local last_line = window.buffer.content[#window.buffer.content]
         return {util.firstNonBlank(last_line), #window.buffer.content}
+    end
+})
+
+registerMotion({
+    key = "gg",
+    linewise = true,
+    exclusive = false,
+    jump = true,
+    execute = function(window)
+        local first_line = window.buffer.content[1] or ""
+        return {util.firstNonBlank(first_line), 1}
     end
 })
 
