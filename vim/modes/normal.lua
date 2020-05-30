@@ -9,25 +9,25 @@ local ret = {}
 ret.command_buffer = ""
 
 function ret.interpret_command()
-	local result = normalcmd.executeNormal(ret.command_buffer)
-	if result then
-		ret.command_buffer = ""
-	end
+    local result = normalcmd.executeNormal(ret.command_buffer)
+    if result then
+        ret.command_buffer = ""
+    end
 end
 
 function ret.keyPress(charcode, keycode)
-	char = string.char(charcode)
-	if char == ":" then
-		ret.command_buffer = ""
-		shared.mode = require("vim/modes/command")
-		return
-	end
-	ret.command_buffer = ret.command_buffer .. char
-	ret.interpret_command()
+    char = string.char(charcode)
+    if char == ":" then
+        ret.command_buffer = ""
+        shared.mode = require("vim/modes/command")
+        return
+    end
+    ret.command_buffer = ret.command_buffer .. char
+    ret.interpret_command()
 end
 
 function ret.onSwitch()
-	status.setStatus("")
+    status.setStatus("")
 end
 
 return ret

@@ -10,38 +10,38 @@ local ret = {}
 ret.command_buffer = ""
 
 local function normalMode()
-	ret.command_buffer = ""
-	shared.mode = require("vim/modes/normal")
+    ret.command_buffer = ""
+    shared.mode = require("vim/modes/normal")
 end
 
 function ret.keyPress(charcode, keycode)
-	local char = string.char(charcode)
-	-- Backspace
-	if char == "\b" then
-		if #ret.command_buffer == 0 then
-			status.setStatus("")
-			normalMode()
-			return
-		end
-		ret.command_buffer = ret.command_buffer:sub(1, #ret.command_buffer - 1)
-	-- Enter
-	elseif char == "\r" then
-		local command = ret.command_buffer
-		normalMode()
-		if command ~= "" then
-			commands.execute(command)
-		end
-	-- ESC(C-[), F1
-	elseif charcode == 27 or charcode == 0 and keycode == 59 then
-		normalMode()
-	-- Printable char
-	elseif charcode >= 32 and charcode <= 126 then
-		ret.command_buffer = ret.command_buffer .. char
-	end
+    local char = string.char(charcode)
+    -- Backspace
+    if char == "\b" then
+        if #ret.command_buffer == 0 then
+            status.setStatus("")
+            normalMode()
+            return
+        end
+        ret.command_buffer = ret.command_buffer:sub(1, #ret.command_buffer - 1)
+    -- Enter
+    elseif char == "\r" then
+        local command = ret.command_buffer
+        normalMode()
+        if command ~= "" then
+            commands.execute(command)
+        end
+    -- ESC(C-[), F1
+    elseif charcode == 27 or charcode == 0 and keycode == 59 then
+        normalMode()
+    -- Printable char
+    elseif charcode >= 32 and charcode <= 126 then
+        ret.command_buffer = ret.command_buffer .. char
+    end
 end
 
 function ret.render()
-	status.setBottom(":" .. ret.command_buffer)
+    status.setBottom(":" .. ret.command_buffer)
 end
 
 return ret
