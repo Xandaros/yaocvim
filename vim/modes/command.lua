@@ -26,8 +26,11 @@ function ret.keyPress(charcode, keycode)
 		ret.command_buffer = ret.command_buffer:sub(1, #ret.command_buffer - 1)
 	-- Enter
 	elseif char == "\r" then
-		commands.execute(ret.command_buffer)
+		local command = ret.command_buffer
 		normalMode()
+		if command ~= "" then
+			commands.execute(command)
+		end
 	-- ESC(C-[), F1
 	elseif charcode == 27 or charcode == 0 and keycode == 59 then
 		normalMode()

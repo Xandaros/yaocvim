@@ -38,6 +38,11 @@ function ret.setStatus(status)
 			if char == "\r" then
 				ret.status = ""
 				break
+			elseif char == ":" then
+				local modes = require("vim/modes/all")
+				ret.status = ""
+				modes.shared.mode = modes.command
+				break
 			end
 		end
 	end
