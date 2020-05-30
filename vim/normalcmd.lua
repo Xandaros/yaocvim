@@ -29,9 +29,12 @@ local function validateCursorX(window, cursor)
         return nil
     end
 	local buffer = window.buffer
-	if cursor[1] < 1 or cursor[1] > #buffer.content[cursor[2]] then
-		return nil
+	if cursor[1] < 1 then
+		return {1, cursor[2]}
 	end
+    if cursor[1] > #buffer.content[cursor[2]] then
+        return {#buffer.content[cursor[2]], cursor[2]}
+    end
     return cursor
 end
 
@@ -79,6 +82,10 @@ registerMotion({
 	execute = function(window)
 		local cur_pos = window.cursor
 		local new_pos = {cur_pos[1] - 1, cur_pos[2]}
+        local line = window.buffer.content[cur_pos[2]]
+        if new_pos[1] > #line then
+            new_pos[1] = #line - 1
+        end
 		return validateCursorXY(window, new_pos) or cur_pos
 	end
 })
