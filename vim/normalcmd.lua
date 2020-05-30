@@ -1,4 +1,5 @@
 local tabs = require("vim/tabs")
+local util = require("vim/util")
 
 local Tab = tabs.Tab
 
@@ -18,9 +19,13 @@ function mod.executeNormal(cmd)
     elseif mod.motions[first_char] then
         local window = Tab.getCurrent():getWindow()
         local new_cur = mod.motions[first_char].execute(window)
-        window.cursor = new_cur
-        window:updateScroll()
-        return true
+        if new_cur ~= nil then
+            window.cursor = new_cur
+            window:updateScroll()
+            return true
+        else
+            return false
+        end
     end
     return true
 end
@@ -58,6 +63,7 @@ registerMotion({
     key = "j",
     linewise = true,
     exclusive = false,
+    jump = false,
     execute = function(window)
         local cur_pos = window.cursor
         local new_pos = {cur_pos[1], cur_pos[2] + 1}
@@ -69,6 +75,7 @@ registerMotion({
     key = "k",
     linewise = true,
     exclusive = false,
+    jump = false,
     execute = function(window)
         local cur_pos = window.cursor
         local new_pos = {cur_pos[1], cur_pos[2] - 1}
@@ -80,6 +87,7 @@ registerMotion({
     key = "h",
     linewise = false,
     exclusive = true,
+    jump = false,
     execute = function(window)
         local cur_pos = window.cursor
         local new_pos = {cur_pos[1] - 1, cur_pos[2]}
@@ -95,6 +103,7 @@ registerMotion({
     key = "l",
     linewise = false,
     exclusive = true,
+    jump = false,
     execute = function(window)
         local cur_pos = window.cursor
         local new_pos = {cur_pos[1] + 1, cur_pos[2]}
@@ -106,10 +115,45 @@ registerMotion({
     key = "$",
     linewise = false,
     exclusive = false,
+    jump = false,
     execute = function(window)
         local cursor = window.cursor
         local new_x = #window.buffer.content[cursor[2]]
         return {new_x, cursor[2]}
+    end
+})
+
+registerMotion({
+    key = "0",
+    linewise = false,
+    exclusive = true,
+    jump = false,
+    execute = function(window)
+        local cursor = window.cursor
+        return {1, cursor[2]}
+    end
+})
+
+registerMotion({
+    key = "^",
+    linewise = false,
+    exclusive = true,
+    jump = false,
+    execute = function(window)
+        local cursor = window.cursor
+        local line = window.buffer.content[cursor[2]]
+        return {util.firstNonBlank(line), cursor[2]}
+    end
+})
+
+registerMotion({
+    key = "G",
+    linewise = true,
+    exclusive = false,
+    jump = true,
+    execute = function(window)
+        local last_line = window.buffer.content[#window.buffer.content]
+        return {util.firstNonBlank(last_line), #window.buffer.content}
     end
 })
 

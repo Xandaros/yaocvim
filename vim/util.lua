@@ -17,4 +17,8 @@ function ret.invertColor()
     gpu.setForeground(bg, bg_pal)
 end
 
+function ret.firstNonBlank(line)
+    return string.find(line, "[^ \t]")
+end
+
 return ret
