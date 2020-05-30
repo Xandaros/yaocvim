@@ -185,4 +185,48 @@ registerMotion({
     end
 })
 
+registerMotion({
+    key = "w",
+    linewise = false,
+    exclusive = true,
+    jump = false,
+    execute = function(window)
+        local word1 = "[%a%d_]"
+        local word2 = "[^%a%d_%s]"
+        local cursor = window.cursor
+        local cur_line = window.buffer.content[cursor[2]]
+        local cur_char = cur_line:sub(cursor[1], cursor[1])
+        local after_cursor = cur_line:sub(cursor[1], #cur_line)
+        local patterns = {"[^%s]"}
+
+        if string.match(cur_char, word1) then
+            patterns = {word2, "%s" .. word1}
+        elseif string.match(cur_char, word2) then
+            patterns = {word1, "%s" .. word2}
+        end
+        local idx = nil
+        for _, pattern in ipairs(patterns) do
+            local i, _ = string.find(after_cursor, pattern)
+            if i ~= nil then
+                if idx == nil or i < idx then
+                    idx = i
+                end
+            end
+        end
+        if idx == nil then
+            -- no words found on this line, jump to next line's first non-empty char
+            local next_line = window.buffer.content[cursor[2] + 1]
+            if next_line == nil then
+                return cursor
+            end
+            return {util.firstNonBlank(next_line), cursor[2] + 1}
+        end
+        local new_x = cursor[1] + idx - 1
+        if string.match(cur_line:sub(new_x, new_x), "%s") then
+            new_x = new_x + 1
+        end
+        return {new_x, cursor[2]}
+    end
+})
+
 return mod
