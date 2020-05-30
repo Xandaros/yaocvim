@@ -58,7 +58,9 @@ end
 
 function ret.render()
 	local y = screen_dim[2] - #ret.status
-	gpu.fill(1, y, screen_dim[1], screen_dim[2] + 1, " ")
+	if #ret.status > 1 then
+		gpu.fill(1, y, screen_dim[1], screen_dim[2] + 1, " ")
+	end
 	for i=1, #ret.status do
 		gpu.set(1, y + i, ret.status[i])
 	end
