@@ -187,21 +187,18 @@ registerMotion({
 
 local function findNextWord(str, pos)
     if pos == nil then return nil end
-    local word1 = "[%a%d_]"
-    local word2 = "[^%a%d_%s]"
     local cur_char = str:sub(pos, pos)
     local after_cursor = str:sub(pos, #str)
-    local patterns = {"[^%s]"}
+    local patterns = {
+        "[^%a%d_][%a%d_]",
+        "[%a%d_%s][^%a%d_%s]"
+    }
 
-    if string.match(cur_char, word1) then
-        patterns = {word2, "%s" .. word1}
-    elseif string.match(cur_char, word2) then
-        patterns = {word1, "%s" .. word2}
-    end
     local idx = nil
     for _, pattern in ipairs(patterns) do
         local i, _ = string.find(after_cursor, pattern)
         if i ~= nil then
+            i = i + 1
             if idx == nil or i < idx then
                 idx = i
             end
@@ -211,16 +208,11 @@ local function findNextWord(str, pos)
         return nil
     end
     local new_x = pos + idx - 1
-    if string.match(str:sub(new_x, new_x), "%s") then
-        new_x = new_x + 1
-    end
     return new_x
 end
 
 local function findEndOfWord(str, pos)
     if pos == nil then return nil end
-    local word1 = "[%a%d_]"
-    local word2 = "[^%a%d_%s]"
     local cur_char = str:sub(pos, pos)
     local after_cursor = str:sub(pos + 1, #str) .. " "
     local patterns = {
