@@ -8,8 +8,19 @@ local mod = {}
 mod.operators = {}
 mod.motions = {}
 
+local Motion = {
+    key = "",
+    linewise = false,
+    exclusive = false,
+    jump = false,
+    execute = function(window)
+    end
+}
+
+Motion.__index = Motion
+
 local function registerMotion(motionspec)
-    mod.motions[motionspec.key] = motionspec
+    mod.motions[motionspec.key] = setmetatable(motionspec, Motion)
 end
 
 local function findCandidates(str, tbl)
@@ -79,8 +90,6 @@ end
 registerMotion({
     key = "j",
     linewise = true,
-    exclusive = false,
-    jump = false,
     execute = function(window)
         local cur_pos = window.cursor
         local new_pos = {cur_pos[1], cur_pos[2] + 1}
@@ -91,8 +100,6 @@ registerMotion({
 registerMotion({
     key = "k",
     linewise = true,
-    exclusive = false,
-    jump = false,
     execute = function(window)
         local cur_pos = window.cursor
         local new_pos = {cur_pos[1], cur_pos[2] - 1}
@@ -102,9 +109,7 @@ registerMotion({
 
 registerMotion({
     key = "h",
-    linewise = false,
     exclusive = true,
-    jump = false,
     execute = function(window)
         local cur_pos = window.cursor
         local new_pos = {cur_pos[1] - 1, cur_pos[2]}
@@ -118,9 +123,7 @@ registerMotion({
 
 registerMotion({
     key = "l",
-    linewise = false,
     exclusive = true,
-    jump = false,
     execute = function(window)
         local cur_pos = window.cursor
         local new_pos = {cur_pos[1] + 1, cur_pos[2]}
@@ -130,9 +133,6 @@ registerMotion({
 
 registerMotion({
     key = "$",
-    linewise = false,
-    exclusive = false,
-    jump = false,
     execute = function(window)
         local cursor = window.cursor
         local new_x = #window.buffer.content[cursor[2]]
@@ -142,9 +142,7 @@ registerMotion({
 
 registerMotion({
     key = "0",
-    linewise = false,
     exclusive = true,
-    jump = false,
     execute = function(window)
         local cursor = window.cursor
         return {1, cursor[2]}
@@ -166,7 +164,6 @@ registerMotion({
 registerMotion({
     key = "G",
     linewise = true,
-    exclusive = false,
     jump = true,
     execute = function(window)
         local last_line = window.buffer.content[#window.buffer.content]
@@ -177,7 +174,6 @@ registerMotion({
 registerMotion({
     key = "gg",
     linewise = true,
-    exclusive = false,
     jump = true,
     execute = function(window)
         local first_line = window.buffer.content[1] or ""
@@ -238,9 +234,7 @@ end
 
 registerMotion({
     key = "w",
-    linewise = false,
     exclusive = true,
-    jump = false,
     execute = function(window)
         local cursor = window.cursor
         local cur_line = window.buffer.content[cursor[2]]
@@ -260,9 +254,6 @@ registerMotion({
 
 registerMotion({
     key = "e",
-    linewise = false,
-    exclusive = false,
-    jump = false,
     execute = function(window)
         local cursor = window.cursor
         local x = cursor[1]
@@ -280,9 +271,7 @@ registerMotion({
 
 registerMotion({
     key = "b",
-    linewise = false,
     exclusive = true,
-    jump = false,
     execute = function(window)
         local cursor = window.cursor
 
