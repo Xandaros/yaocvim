@@ -21,4 +21,20 @@ function ret.firstNonBlank(line)
     return string.find(line, "[^ \t]")
 end
 
+function ret.map(tbl, f)
+    local ret = {}
+    for k, v in pairs(tbl) do
+        ret[k] = f(v)
+    end
+    return ret
+end
+
+function ret.flip(f)
+    return function(a)
+        return function(b)
+            return f(b)(a)
+        end
+    end
+end
+
 return ret
