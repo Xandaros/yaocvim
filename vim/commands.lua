@@ -12,7 +12,16 @@ local ret = {}
 ret.commands = {}
 local commands = ret.commands
 
+local Command = {
+    aliases = {},
+    execute = function(self, exclamation, args)
+    end
+}
+
+Command.__index = Command
+
 local function registerCommand(cmdspec)
+    setmetatable(cmdspec, Command)
     for _, alias in ipairs(cmdspec.aliases) do
         commands[alias] = cmdspec
     end
