@@ -137,6 +137,9 @@ registerMotion({
     execute = function(window)
         local cursor = window.cursor
         local new_x = #window.buffer.content[cursor[2]]
+        if new_x < 1 then
+            new_x = 1
+        end
         return {new_x, cursor[2]}
     end
 })
