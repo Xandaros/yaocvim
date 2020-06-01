@@ -246,7 +246,7 @@ registerMotion({
             if next_line == nil then
                 return cursor
             end
-            return {util.firstNonBlank(next_line), cursor[2] + 1}
+            return {util.firstNonBlank(next_line) or 1, cursor[2] + 1}
         end
         return {next_word, cursor[2]}
     end
