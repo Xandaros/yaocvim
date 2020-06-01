@@ -1,3 +1,4 @@
+local debug = require("vim/debug")
 local tabs = require("vim/tabs")
 local util = require("vim/util")
 
@@ -111,12 +112,9 @@ registerMotion({
     key = "h",
     exclusive = true,
     execute = function(window)
+        window:fixCursor()
         local cur_pos = window.cursor
         local new_pos = {cur_pos[1] - 1, cur_pos[2]}
-        local line = window.buffer.content[cur_pos[2]]
-        if new_pos[1] > #line then
-            new_pos[1] = #line - 1
-        end
         return validateCursorXY(window, new_pos) or cur_pos
     end
 })
@@ -236,6 +234,7 @@ registerMotion({
     key = "w",
     exclusive = true,
     execute = function(window)
+        window:fixCursor()
         local cursor = window.cursor
         local cur_line = window.buffer.content[cursor[2]]
         local next_word = findNextWord(cur_line, cursor[1])
@@ -255,6 +254,7 @@ registerMotion({
 registerMotion({
     key = "e",
     execute = function(window)
+        window:fixCursor()
         local cursor = window.cursor
         local x = cursor[1]
         for i=cursor[2], #window.buffer.content do
@@ -273,6 +273,7 @@ registerMotion({
     key = "b",
     exclusive = true,
     execute = function(window)
+        window:fixCursor()
         local cursor = window.cursor
 
         local x = cursor[1]

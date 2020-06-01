@@ -2,6 +2,7 @@ local component = require("component")
 local gpu = component.gpu
 
 local cursor = require("vim/cursor")
+local debug = require("vim/debug")
 local util = require("vim/util")
 
 local screen_dim = {gpu.getResolution()}
@@ -64,6 +65,25 @@ function Window:updateScroll()
         self:scrollY(cursor[2] - 1)
     elseif cursor[2] > self.h + 1 then
         self:scrollY(cursor[2] - self.h - 1)
+    end
+end
+
+function Window:fixCursor(ignoreRight)
+    if self.cursor[1] < 1 then
+        self.cursor[1] = 1
+    end
+    if self.cursor[2] < 1 then
+        self.cursor[2] = 1
+    end
+    if self.cursor[2] > #self.buffer.content then
+        self.cursor[2] = #self.buffer.content
+    end
+
+    if not ignoreRight then
+        local line = self.buffer.content[self.cursor[2]]
+        if self.cursor[1] > #line then
+            self.cursor[1] = #line
+        end
     end
 end
 
