@@ -158,6 +158,8 @@ registerCommand({
         buffer.file = filename
         buffer.name = filename
         window.buffer = buffer
+        buffer:fix()
+        window:fixCursor()
         buffers.updateActive()
     end
 })
