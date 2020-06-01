@@ -282,21 +282,25 @@ registerMotion({
         window:fixCursor()
         local cursor = window.cursor
 
-        local x = cursor[1]
-        for i=cursor[2], 1, -1 do
-            local cur_line = window.buffer.content[i]
-            if x == nil then
-                x = #cur_line
-            end
-            local reversed = cur_line:reverse()
-            local wordEnd_rev = findEndOfWord(reversed, #cur_line - x + 1)
-            if wordEnd_rev ~= nil then
-                local ret = #cur_line - wordEnd_rev + 1
-                return {ret, i}
-            end
-            x = nil
+        local cur_line = window.buffer.content[cursor[2]]
+        local reversed = cur_line:reverse()
+        local wordEnd_rev = findEndOfWord(reversed, #cur_line - cursor[1] + 1)
+        if wordEnd_rev ~= nil then
+            local ret = #cur_line - wordEnd_rev + 1
+            return {ret, cursor[2]}
         end
-        return cursor
+        if cursor[2] == 1 then
+            return {1, cursor[2]}
+        end
+        cur_line = window.buffer.content[cursor[2] - 1]
+        reversed = cur_line:reverse()
+        wordEnd_rev = findEndOfWord(reversed, 1)
+        if wordEnd_rev ~= nil then
+            local ret = #cur_line - wordEnd_rev + 1
+            return {ret, cursor[2] - 1}
+        else
+            return {1, cursor[2] - 1}
+        end
     end
 })
 
