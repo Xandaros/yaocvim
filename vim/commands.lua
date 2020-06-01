@@ -51,9 +51,41 @@ end
 local range_handlers = {
     line = function(range, window)
         local buffer = window.buffer
+        local range_start, range_end = table.unpack(range)
+        if range_end == nil then
+            range_end = range_start
+        end
+
+        if range_start[1] == "%" then
+            return {1, #buffer.content}
+        end
+
+        local function rangeToLine(range)
+            if tonumber(range[1]) ~= nil then
+                return tonumber(range[1]) + range[2]
+            elseif range[1] == "." then
+                return window.cursor[2] + range[2]
+            elseif range[1] == "$" then
+                return #buffer.content + range[2]
+            end
+        end
+
+        local line_start = rangeToLine(range_start)
+        local line_end = rangeToLine(range_end)
+
+        if line_start == nil or line_end == nil then
+            return nil, "Invalid range"
+        end
+
+        if line_start < 1 or line_start > #buffer.content
+            or line_end < 1 or line_start > #buffer.content then
+            return nil, "Invalid range"
+        end
+
+        return {line_start, line_end}
     end,
-    none = function(range)
-        if range ~= "" then
+    none = function(range, window)
+        if range[1][1] ~= "" then
             return nil, "No range allowed"
         end
         return 1
@@ -149,7 +181,28 @@ registerCommand({
     end
 })
 
+registerCommand({
+    aliases = {"delete", "d", "de", "del"},
+    execute = function(self, range, exclamation, args)
+        if range[1] > range[2] then
+            status.setStatus("Backwards range given. Not implemented yet")
+        end
+
+        local window = Tab.getCurrent():getWindow()
+        local buffer = window.buffer
+        for i=range[1], range[2] do
+            table.remove(buffer.content, range[1])
+        end
+        buffer:fix()
+        local line = buffer.content[range[1]]
+        window.cursor[2] = range[1]
+        window.cursor[1] = util.firstNonBlank(line) or 1
+        window:fixCursor()
+    end
+})
+
 function ret.execute(input)
+    local window = Tab.getCurrent():getWindow()
     local split = {}
     for x in input:gmatch("[^ ]+") do
         split[#split + 1] = x
@@ -166,8 +219,8 @@ function ret.execute(input)
     debug.log("Stripped command:" .. stripped_command)
     local cmd = commands[stripped_command]
     if cmd ~= nil then
-        range = range or cmd.default_range
-        local parsed_range, err = cmd.range_handler(range)
+        range = range or {{cmd.default_range, 0}}
+        local parsed_range, err = cmd.range_handler(range, window)
         if parsed_range == nil then
             status.setStatus(err)
             return

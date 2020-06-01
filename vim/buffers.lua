@@ -21,6 +21,12 @@ function Buffer.new(content)
     return ret
 end
 
+function Buffer:fix()
+    if #self.content == 0 then
+        self.content[1] = ""
+    end
+end
+
 function mod.updateActive()
     for _, buffer in ipairs(mod.buffers) do
         buffer.active = false

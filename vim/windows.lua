@@ -69,9 +69,6 @@ function Window:updateScroll()
 end
 
 function Window:fixCursor(ignoreRight)
-    if self.cursor[1] < 1 then
-        self.cursor[1] = 1
-    end
     if self.cursor[2] < 1 then
         self.cursor[2] = 1
     end
@@ -84,6 +81,9 @@ function Window:fixCursor(ignoreRight)
         if self.cursor[1] > #line then
             self.cursor[1] = #line
         end
+    end
+    if self.cursor[1] < 1 then
+        self.cursor[1] = 1
     end
 end
 

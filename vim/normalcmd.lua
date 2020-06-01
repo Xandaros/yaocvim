@@ -67,8 +67,10 @@ local function validateCursorX(window, cursor)
     if cursor[1] < 1 then
         return {1, cursor[2]}
     end
-    if cursor[1] > #buffer.content[cursor[2]] then
-        return {#buffer.content[cursor[2]], cursor[2]}
+    local length = #buffer.content[cursor[2]]
+    if length == 0 then length = 1 end
+    if cursor[1] > length then
+        return {length, cursor[2]}
     end
     return cursor
 end
@@ -123,6 +125,7 @@ registerMotion({
     key = "l",
     exclusive = true,
     execute = function(window)
+        window:fixCursor()
         local cur_pos = window.cursor
         local new_pos = {cur_pos[1] + 1, cur_pos[2]}
         return validateCursorXY(window, new_pos) or cur_pos
