@@ -5,6 +5,8 @@ local debug = require("vim/debug")
 
 local ret = {}
 
+ret.screen_dim = {gpu.getResolution()}
+
 function ret.printTable(tbl, tabs)
     if tabs == nil then tabs = 0 end
     local key_length = 0

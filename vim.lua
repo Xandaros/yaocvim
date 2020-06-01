@@ -10,6 +10,7 @@ local event = require("event")
 local gpu = component.gpu
 
 local buffers = require("vim/buffers")
+local cursor = require("vim/cursor")
 local enums = require("vim/enums")
 local modes = require("vim/modes/all")
 local status = require("vim/status")
@@ -33,6 +34,8 @@ local function render()
         modes.shared.mode.render()
     end
     status.render()
+
+    cursor.renderCursor()
 end
 
 local function createInitialTab()

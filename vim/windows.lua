@@ -1,6 +1,7 @@
 local component = require("component")
 local gpu = component.gpu
 
+local cursor = require("vim/cursor")
 local util = require("vim/util")
 
 local screen_dim = {gpu.getResolution()}
@@ -24,6 +25,8 @@ function Window.new(buffer, x, y, w, h)
     ret.y = y
     ret.w = w
     ret.h = h
+
+    ret.show_cursor = true
 
     return ret
 end
@@ -81,22 +84,23 @@ function Window:render()
     end
 
     -- Render cursor
-    util.invertColor()
-    local cur_line = buffer.content[self.cursor[2]]
-    local cursor_x = self.cursor[1]
-    if cursor_x > #cur_line then
-        cursor_x = math.max(#cur_line, 1)
+    if self.show_cursor then
+        local cur_line = buffer.content[self.cursor[2]]
+        local cursor_x = self.cursor[1]
+        if cursor_x > #cur_line then
+            cursor_x = math.max(#cur_line, 1)
+        end
+        cursor_pos = self:textToScreenCoords({cursor_x, self.cursor[2]})
+        local char_under_cursor = cur_line:sub(cursor_x, cursor_x)
+        if char_under_cursor == nil
+            or char_under_cursor == ""
+            or string.byte(char_under_cursor) <= 32
+            or string.byte(char_under_cursor) >= 127 then
+            char_under_cursor = " "
+        end
+        cursor.char = char_under_cursor
+        cursor.cursor = cursor_pos
     end
-    cursor_pos = self:textToScreenCoords({cursor_x, self.cursor[2]})
-    local char_under_cursor = cur_line:sub(cursor_x, cursor_x)
-    if char_under_cursor == nil
-        or char_under_cursor == ""
-        or string.byte(char_under_cursor) <= 32
-        or string.byte(char_under_cursor) >= 127 then
-        char_under_cursor = " "
-    end
-    gpu.set(cursor_pos[1], cursor_pos[2], char_under_cursor)
-    util.invertColor()
 end
 
 return mod

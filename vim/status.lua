@@ -39,7 +39,7 @@ function ret.setStatus(status)
             elseif char == ":" then
                 local modes = require("vim/modes/all")
                 ret.status[#ret.status + 1] = ""
-                modes.shared.mode = modes.command
+                modes.setMode(modes.command)
                 break
             end
         end

@@ -3,6 +3,9 @@ local keyboard = require("keyboard")
 local normalcmd = require("vim/normalcmd")
 local shared = require("vim/modes/shared")
 local status = require("vim/status")
+local tabs = require("vim/tabs")
+
+local Tab = tabs.Tab
 
 local ret = {}
 
@@ -19,7 +22,7 @@ function ret.keyPress(charcode, keycode)
     char = string.char(charcode)
     if char == ":" then
         ret.command_buffer = ""
-        shared.mode = require("vim/modes/command")
+        shared.setMode(require("vim/modes/command"))
         return
     end
     ret.command_buffer = ret.command_buffer .. char
@@ -27,7 +30,7 @@ function ret.keyPress(charcode, keycode)
 end
 
 function ret.onSwitch()
-    status.setStatus("")
+    Tab.getCurrent():getWindow().show_cursor = true
 end
 
 return ret
