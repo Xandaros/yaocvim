@@ -28,6 +28,7 @@ function Window.new(buffer, x, y, w, h)
     ret.h = h
 
     ret.show_cursor = true
+    ret.limit_cursor = true
 
     return ret
 end
@@ -107,7 +108,7 @@ function Window:render()
     if self.show_cursor then
         local cur_line = buffer.content[self.cursor[2]]
         local cursor_x = self.cursor[1]
-        if cursor_x > #cur_line then
+        if self.limit_cursor and cursor_x > #cur_line then
             cursor_x = math.max(#cur_line, 1)
         end
         cursor_pos = self:textToScreenCoords({cursor_x, self.cursor[2]})

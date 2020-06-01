@@ -24,6 +24,10 @@ function ret.keyPress(charcode, keycode)
         ret.command_buffer = ""
         shared.setMode(require("vim/modes/command"))
         return
+    elseif char == "i" then
+        ret.command_buffer = ""
+        shared.setMode(require("vim/modes/insert"))
+        return
     end
     ret.command_buffer = ret.command_buffer .. char
     ret.interpret_command()
