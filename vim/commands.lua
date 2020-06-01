@@ -132,14 +132,18 @@ registerCommand({
                 return
             end
             filename = buffer.file
-        end
-
-        local buffer = nil
-        for k, v in pairs(buffers.buffers) do
-            if v.file == filename then
-                buffer = v
+        else
+            for k, v in pairs(buffers.buffers) do
+                if v.file == filename then
+                    window.buffer = v
+                    v:fix()
+                    window:fixCursor()
+                    buffers.updateActive()
+                    return
+                end
             end
         end
+        local buffer = nil
         if buffer == nil then
             buffer = Buffer.new()
         end
