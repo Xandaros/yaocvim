@@ -7,8 +7,18 @@ local Parser = mod.Parser
 Parser.__index = Parser
 
 function Parser:parse(input)
+    if type(input) ~= "string" then
+        return nil
+    end
     local match, rest = self.run(input)
     return match
+end
+
+function Parser:runParser(input)
+    if type(input) ~= "string" then
+        return nil
+    end
+    return self.run(input)
 end
 
 ---------------
@@ -34,7 +44,7 @@ function Parser:andThen(f)
         if match2 == nil then
             return nil, input
         end
-        return match1 .. match2, rest2
+        return match2, rest2
     end)
 end
 
@@ -99,7 +109,7 @@ function Parser.oneOf(s)
             chars[#chars + 1] = s:sub(i, i)
         end
         local parsers = util.map(chars, Parser.string)
-        return Parser.choice(parsers)
+        return Parser.choice(parsers).run(input)
     end)
 end
 
@@ -260,7 +270,10 @@ function Parser.many(parser)
 end
 
 function Parser.many1(parser)
-    return parser:andAlso(Parser.many(parser))
+    return Parser.inOrder(
+        parser,
+        Parser.many(parser)
+    )
 end
 
 return mod

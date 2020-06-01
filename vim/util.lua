@@ -1,11 +1,27 @@
 local component = require("component")
 local gpu = component.gpu
 
+local debug = require("vim/debug")
+
 local ret = {}
 
-function ret.printTable(tbl)
+function ret.printTable(tbl, tabs)
+    if tabs == nil then tabs = 0 end
+    local key_length = 0
+    for k, _ in pairs(tbl) do
+        if #tostring(k) > key_length then
+            key_length = #tostring(k)
+        end
+    end
+
+    local prepend = string.rep("\t", tabs)
     for k, v in pairs(tbl) do
-        print(k, v)
+        if type(v) == "table" then
+            print(tostring(k) .. ":")
+            ret.printTable(v, tabs + 1)
+        else
+            print(("%s%" .. key_length .. "s: %s"):format(prepend, tostring(k), tostring(v)))
+        end
     end
 end
 
