@@ -69,8 +69,14 @@ function ret.render()
     cursor.cursor = {ret.cursor + 1, util.screen_dim[2]}
 end
 
-function ret.onSwitch()
+function ret.onSwitch(count)
     Tab.getCurrent():getWindow().show_cursor = false
+    if count == 1 then
+        ret.command_buffer = "."
+    elseif count > 1 then
+        ret.command_buffer = ".,.+" .. tostring(count - 1)
+    end
+    ret.cursor = #ret.command_buffer + 1
 end
 
 return ret

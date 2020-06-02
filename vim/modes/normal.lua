@@ -21,11 +21,7 @@ end
 
 function ret.keyPress(charcode, keycode)
     char = string.char(charcode)
-    if char == ":" then
-        ret.command_buffer = ""
-        shared.setMode(require("vim/modes/command"))
-        return
-    elseif char == "i" then
+    if char == "i" then
         ret.command_buffer = ""
         shared.setMode(require("vim/modes/insert"))
         return

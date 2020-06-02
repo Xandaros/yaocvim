@@ -1,5 +1,6 @@
 local debug = require("vim/debug")
 local parser = require("vim/parser")
+local shared = require("vim/modes/shared")
 local tabs = require("vim/tabs")
 local util = require("vim/util")
 
@@ -12,6 +13,8 @@ mod.keys = {}
 
 local Operator = {
     key = "",
+    priority = false,
+    default_count = 1,
     execute = function(window, count, motion_count, motion, motion_args)
     end,
     __tostring = function(self)
@@ -26,6 +29,7 @@ local Motion = {
     linewise = false,
     exclusive = false,
     jump = false,
+    default_count = 1,
     execute = function(window, count, args)
     end,
     __tostring = function(self)
@@ -103,15 +107,18 @@ function mod.executeNormal(cmd)
     local window = Tab.getCurrent():getWindow()
 
     local register, rest = Parser.string("\""):andAlso(Parser.anyChar()):runParser(cmd)
-    local count, rest = Parser.option(1)(Parser.pattern("[1-9]%d*")):runParser(rest)
+    local count, rest = Parser.pattern("[1-9]%d*"):map(tonumber):runParser(rest)
     local command, rest = Parser.pattern("[^1-9]+"):runParser(rest)
-    local count2, rest = Parser.pattern("[1-9]%d*"):runParser(rest)
+    local count2, rest = Parser.pattern("[1-9]%d*"):map(tonumber):runParser(rest)
     local command2, rest = Parser.pattern("[^1-9]+"):runParser(rest)
     if command == nil then return false end
 
 
     local action, args = getKey(command)
 
+    if count == nil and type(action) == "table" then
+        count = action.default_count
+    end
     if getmetatable(action) == Motion then
         local new_cur = action.execute(window, count, args)
         if new_cur ~= nil then
@@ -126,8 +133,10 @@ function mod.executeNormal(cmd)
         if count2 ~= nil then
             action2, args = getKey(command2)
         else
-            count2 = 1
             action2, args = getKey(command:sub(#action.key + 1))
+            if type(action2) == "table" then
+                count2 = action2.default_count
+            end
         end
 
         if action2 == false or getmetatable(action2) == Motion then
@@ -136,6 +145,8 @@ function mod.executeNormal(cmd)
         elseif getmetatable(action2) == Operator then
             if action2 == action then
                 return action.execute(window, count, count2, WholeLine, args)
+            elseif action2.priority then
+                return action2.execute(window, action2.default_count, count2, WholeLine, args)
             else
                 return true
             end
@@ -454,6 +465,17 @@ registerMotion({
         end
         return {x, cursor[2]}
     end
+})
+
+registerOperator({
+    key = ":",
+    priority = true,
+    default_count = 0,
+    execute = function(window, count, motion_count, motion, motion_args)
+        shared.setMode(require("vim/modes/command"), count)
+        return true
+    end,
+
 })
 
 registerOperator({
