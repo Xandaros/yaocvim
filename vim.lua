@@ -53,7 +53,7 @@ local function main()
     createInitialTab()
     render()
     while (true) do
-        _, _, charcode, keycode, _ = event.pull(nil, "key_down")
+        local _, _, charcode, keycode, _ = event.pull(nil, "key_down")
         modes.shared.mode.keyPress(charcode, keycode)
         render()
     end

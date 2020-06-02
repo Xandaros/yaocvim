@@ -220,9 +220,6 @@ function ret.execute(input)
         command = command:sub(1, #command - 1)
     end
     local range, stripped_command = range_parser():runParser(command)
-    debug.log("Range: ")
-    debug.logTable(range)
-    debug.log("Stripped command:" .. stripped_command)
     local cmd = commands[stripped_command]
     if cmd ~= nil then
         range = range or {{cmd.default_range, 0}}

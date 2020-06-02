@@ -14,7 +14,7 @@ local Motion = {
     linewise = false,
     exclusive = false,
     jump = false,
-    execute = function(window)
+    execute = function(window, count, args)
     end
 }
 
@@ -22,6 +22,18 @@ Motion.__index = Motion
 
 local function registerMotion(motionspec)
     mod.motions[motionspec.key] = setmetatable(motionspec, Motion)
+end
+
+local function findLongestMatch(str, tbl)
+    local key = ""
+    for k, _ in pairs(tbl) do
+        if str:sub(1, #k) == k then
+            if #k > #key then
+                key = k
+            end
+        end
+    end
+    return tbl[key], str:sub(#key + 1)
 end
 
 local function findCandidates(str, tbl)
@@ -39,21 +51,29 @@ function mod.executeNormal(cmd)
     if mod.operators[first_char] then
         return mod.operators[first_char].execute()
     end
-    local candidate_motions = findCandidates(cmd, mod.motions)
-    if #candidate_motions == 1 then
-        if candidate_motions[1].key ~= cmd then
-            return false
+
+    do
+        local candidates = findCandidates(cmd, mod.motions)
+        if #candidates > 0 then
+            local key = candidates[1].key
+            if cmd:sub(1, #key) ~= key then
+                return false
+            end
         end
-        local window = Tab.getCurrent():getWindow()
-        local new_cur = candidate_motions[1].execute(window)
-        if new_cur ~= nil then
-            window.cursor = new_cur
-            window:updateScroll()
-            return true
-        else
-            return false
-        end
-    elseif #candidate_motions > 1 then
+    end
+
+    local motion, rest = findLongestMatch(cmd, mod.motions)
+    if motion == nil then
+        return true
+    end
+
+    local window = Tab.getCurrent():getWindow()
+    local new_cur = motion.execute(window, 1, rest)
+    if new_cur ~= nil then
+        window.cursor = new_cur
+        window:updateScroll()
+        return true
+    else
         return false
     end
     return true
@@ -93,7 +113,7 @@ end
 registerMotion({
     key = "j",
     linewise = true,
-    execute = function(window)
+    execute = function(window, count, args)
         local cur_pos = window.cursor
         local new_pos = {cur_pos[1], cur_pos[2] + 1}
         return validateCursorY(window, new_pos) or cur_pos
@@ -103,7 +123,7 @@ registerMotion({
 registerMotion({
     key = "k",
     linewise = true,
-    execute = function(window)
+    execute = function(window, count, args)
         local cur_pos = window.cursor
         local new_pos = {cur_pos[1], cur_pos[2] - 1}
         return validateCursorY(window, new_pos) or cur_pos
@@ -113,7 +133,7 @@ registerMotion({
 registerMotion({
     key = "h",
     exclusive = true,
-    execute = function(window)
+    execute = function(window, count, args)
         window:fixCursor()
         local cur_pos = window.cursor
         local new_pos = {cur_pos[1] - 1, cur_pos[2]}
@@ -124,7 +144,7 @@ registerMotion({
 registerMotion({
     key = "l",
     exclusive = true,
-    execute = function(window)
+    execute = function(window, count, args)
         window:fixCursor()
         local cur_pos = window.cursor
         local new_pos = {cur_pos[1] + 1, cur_pos[2]}
@@ -134,7 +154,7 @@ registerMotion({
 
 registerMotion({
     key = "$",
-    execute = function(window)
+    execute = function(window, count, args)
         local cursor = window.cursor
         local new_x = #window.buffer.content[cursor[2]]
         if new_x < 1 then
@@ -147,7 +167,7 @@ registerMotion({
 registerMotion({
     key = "0",
     exclusive = true,
-    execute = function(window)
+    execute = function(window, count, args)
         local cursor = window.cursor
         return {1, cursor[2]}
     end
@@ -158,7 +178,7 @@ registerMotion({
     linewise = false,
     exclusive = true,
     jump = false,
-    execute = function(window)
+    execute = function(window, count, args)
         local cursor = window.cursor
         local line = window.buffer.content[cursor[2]]
         return {util.firstNonBlank(line), cursor[2]}
@@ -169,7 +189,7 @@ registerMotion({
     key = "G",
     linewise = true,
     jump = true,
-    execute = function(window)
+    execute = function(window, count, args)
         local last_line = window.buffer.content[#window.buffer.content]
         return {util.firstNonBlank(last_line), #window.buffer.content}
     end
@@ -179,7 +199,7 @@ registerMotion({
     key = "gg",
     linewise = true,
     jump = true,
-    execute = function(window)
+    execute = function(window, count, args)
         local first_line = window.buffer.content[1] or ""
         return {util.firstNonBlank(first_line), 1}
     end
@@ -187,7 +207,6 @@ registerMotion({
 
 local function findNextWord(str, pos)
     if pos == nil then return nil end
-    local cur_char = str:sub(pos, pos)
     local after_cursor = str:sub(pos, #str)
     local patterns = {
         "[^%a%d_][%a%d_]",
@@ -213,7 +232,6 @@ end
 
 local function findEndOfWord(str, pos)
     if pos == nil then return nil end
-    local cur_char = str:sub(pos, pos)
     local after_cursor = str:sub(pos + 1, #str) .. " "
     local patterns = {
         "[%a%d_][^%a%d_]",
@@ -239,7 +257,7 @@ end
 registerMotion({
     key = "w",
     exclusive = true,
-    execute = function(window)
+    execute = function(window, count, args)
         window:fixCursor()
         local cursor = window.cursor
         local cur_line = window.buffer.content[cursor[2]]
@@ -259,7 +277,7 @@ registerMotion({
 
 registerMotion({
     key = "e",
-    execute = function(window)
+    execute = function(window, count, args)
         window:fixCursor()
         local cursor = window.cursor
         local x = cursor[1]
@@ -278,7 +296,7 @@ registerMotion({
 registerMotion({
     key = "b",
     exclusive = true,
-    execute = function(window)
+    execute = function(window, count, args)
         window:fixCursor()
         local cursor = window.cursor
 
@@ -301,6 +319,24 @@ registerMotion({
         else
             return {1, cursor[2] - 1}
         end
+    end
+})
+
+registerMotion({
+    key = "f",
+    execute = function(window, count, args)
+        local cursor = window.cursor
+        if #args == 0 then
+            return nil
+        end
+        local line = window.buffer.content[cursor[2]]
+        for i = cursor[1], #line do
+            local char = line:sub(i,i)
+            if char == args then
+                return {i, cursor[2]}
+            end
+        end
+        return cursor
     end
 })
 
