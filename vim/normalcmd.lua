@@ -557,4 +557,17 @@ registerOperator({
     end
 })
 
+registerOperator({
+    key = "D",
+    execute = function(window, count, motion_count, motion, motion_args)
+        local cursor = window.cursor
+        local buffer = window.buffer
+        local line = buffer.content[cursor[2]]
+
+        buffer:deleteNormal({cursor[1], cursor[2]}, {#line, cursor[2]})
+        window:fixCursor()
+        return true
+    end
+})
+
 return mod
