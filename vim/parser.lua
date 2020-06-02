@@ -52,6 +52,12 @@ function Parser:andAlso(parser)
     return self:andThen(function(_) return parser end)
 end
 
+function Parser:map(f)
+    return self:andThen(function(x)
+        return Parser.pure(f(x))
+    end)
+end
+
 function Parser.pure(s)
     return Parser.func(function(input)
         return s, input
@@ -94,7 +100,7 @@ end
 
 function Parser.pattern(pat)
     return Parser.func(function(input)
-        local match = string.match(input, pat)
+        local match = string.match(input, "^" .. pat)
         if match ~= nil then
             input = input:sub(#match + 1)
         end

@@ -1,13 +1,25 @@
 local debug = require("vim/debug")
+local parser = require("vim/parser")
 local tabs = require("vim/tabs")
 local util = require("vim/util")
 
+local Parser = parser.Parser
 local Tab = tabs.Tab
 
 local mod = {}
 
-mod.operators = {}
-mod.motions = {}
+mod.keys = {}
+
+local Operator = {
+    key = "",
+    execute = function(window, count, motion_count, motion, motion_args)
+    end,
+    __tostring = function(self)
+        return "Operator<" .. self.key .. ">"
+    end
+}
+
+Operator.__index = Operator
 
 local Motion = {
     key = "",
@@ -15,13 +27,20 @@ local Motion = {
     exclusive = false,
     jump = false,
     execute = function(window, count, args)
+    end,
+    __tostring = function(self)
+        return "Motion<" .. self.key .. ">"
     end
 }
 
 Motion.__index = Motion
 
+local function registerOperator(operatorspec)
+    mod.keys[operatorspec.key] = setmetatable(operatorspec, Operator)
+end
+
 local function registerMotion(motionspec)
-    mod.motions[motionspec.key] = setmetatable(motionspec, Motion)
+    mod.keys[motionspec.key] = setmetatable(motionspec, Motion)
 end
 
 local function findLongestMatch(str, tbl)
@@ -46,14 +65,17 @@ local function findCandidates(str, tbl)
     return ret
 end
 
-function mod.executeNormal(cmd)
-    local first_char = cmd:sub(1, 1)
-    if mod.operators[first_char] then
-        return mod.operators[first_char].execute()
-    end
 
+--- returns:
+--- True: Invalid input
+--- False: Ambiguous input
+--- Motion/Operator, string: Valid input, unparsed text
+local function getKey(cmd)
+    if cmd == nil then
+        return false
+    end
     do
-        local candidates = findCandidates(cmd, mod.motions)
+        local candidates = findCandidates(cmd, mod.keys)
         if #candidates > 0 then
             local key = candidates[1].key
             if cmd:sub(1, #key) ~= key then
@@ -62,21 +84,67 @@ function mod.executeNormal(cmd)
         end
     end
 
-    local motion, rest = findLongestMatch(cmd, mod.motions)
-    if motion == nil then
+    local action, rest = findLongestMatch(cmd, mod.keys)
+    if action == nil then
         return true
     end
+    return action, rest
+end
 
-    local window = Tab.getCurrent():getWindow()
-    local new_cur = motion.execute(window, 1, rest)
-    if new_cur ~= nil then
-        window.cursor = new_cur
-        window:updateScroll()
-        return true
-    else
-        return false
+local WholeLine = setmetatable({
+    key = "<whole line>",
+    linewise = true,
+    execute = function(window, count, args)
+        return window.cursor
     end
-    return true
+}, Motion)
+
+function mod.executeNormal(cmd)
+    local window = Tab.getCurrent():getWindow()
+
+    local register, rest = Parser.string("\""):andAlso(Parser.anyChar()):runParser(cmd)
+    local count, rest = Parser.option(1)(Parser.many1(Parser.digit())):runParser(rest)
+    local command, rest = Parser.pattern("[^%d]+"):runParser(rest)
+    local count2, rest = Parser.many1(Parser.digit()):runParser(rest)
+    local command2, rest = Parser.pattern("[^%d]+"):runParser(rest)
+    if command == nil then return false end
+
+
+    local action, args = getKey(command)
+
+    if getmetatable(action) == Motion then
+        local new_cur = action.execute(window, 1, args)
+        if new_cur ~= nil then
+            window.cursor = new_cur
+            window:updateScroll()
+            return true
+        else
+            return false
+        end
+    elseif getmetatable(action) == Operator then
+        local action2, args
+        if count2 ~= nil then
+            action2, args = getKey(command2)
+        else
+            count2 = 1
+            action2, args = getKey(command:sub(#action.key + 1))
+        end
+
+        if action2 == false or getmetatable(action2) == Motion then
+            if action2 == false then action2 = nil end
+            return action.execute(window, count, count2, action2, args)
+        elseif getmetatable(action2) == Operator then
+            if action2 == action then
+                return action.execute(window, count, count2, WholeLine, args)
+            else
+                return true
+            end
+        else
+            return action2
+        end
+    else
+        return action
+    end
 end
 
 local function validateCursorX(window, cursor)
@@ -337,6 +405,20 @@ registerMotion({
             end
         end
         return cursor
+    end
+})
+
+registerOperator({
+    key = "d",
+    execute = function(window, count, motion_count, motion, motion_args)
+        if motion == nil then return false end
+        local buffer = window.buffer
+        local cursor = window.cursor
+        local new_cursor = motion.execute(window, motion_count, motion_args)
+        for i=1, (new_cursor[2] - cursor[2] + 1) * count do
+            table.remove(buffer.content, cursor[2])
+        end
+        return true
     end
 })
 

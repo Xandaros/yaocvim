@@ -1,5 +1,6 @@
 local keyboard = require("keyboard")
 
+local debug = require("vim/debug")
 local normalcmd = require("vim/normalcmd")
 local shared = require("vim/modes/shared")
 local status = require("vim/status")
