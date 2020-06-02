@@ -456,7 +456,7 @@ registerMotion({
     execute = function(window, count, args)
         local cursor = window.cursor
         if #args == 0 then
-            return nil
+            return false
         end
         local line = window.buffer.content[cursor[2]]
         local x = cursor[1]
@@ -503,6 +503,9 @@ registerOperator({
         local buffer = window.buffer
         local cursor = window.cursor
         local new_cursor = motion.execute(window, motion_count, motion_args)
+        if new_cursor == false then
+            return false
+        end
         if motion.linewise then
             if new_cursor[2] < 1 then
                 return true
