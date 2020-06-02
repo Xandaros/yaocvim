@@ -21,11 +21,6 @@ end
 
 function ret.keyPress(charcode, keycode)
     char = string.char(charcode)
-    if char == "i" then
-        ret.command_buffer = ""
-        shared.setMode(require("vim/modes/insert"))
-        return
-    end
     if charcode >= 32 and charcode <= 126 then
         ret.command_buffer = ret.command_buffer .. char
         ret.interpret_command()

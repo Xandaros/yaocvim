@@ -489,6 +489,14 @@ registerOperator({
 })
 
 registerOperator({
+    key = "i",
+    execute = function(window, count, motion_count, motion, motion_args)
+        shared.setMode(require("vim/modes/insert"), count)
+        return true
+    end,
+})
+
+registerOperator({
     key = "d",
     execute = function(window, count, motion_count, motion, motion_args)
         if motion == nil then return false end
