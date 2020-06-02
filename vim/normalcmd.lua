@@ -497,6 +497,26 @@ registerOperator({
 })
 
 registerOperator({
+    key = "a",
+    execute = function(window, count, motion_count, motion, motion_args)
+        window:fixCursor()
+        window.cursor[1] = window.cursor[1] + 1
+        shared.setMode(require("vim/modes/insert"), count)
+        return true
+    end,
+})
+
+registerOperator({
+    key = "A",
+    execute = function(window, count, motion_count, motion, motion_args)
+        local line = window.buffer.content[window.cursor[2]]
+        window.cursor[1] = #line + 1
+        shared.setMode(require("vim/modes/insert"), count)
+        return true
+    end,
+})
+
+registerOperator({
     key = "d",
     execute = function(window, count, motion_count, motion, motion_args)
         if motion == nil then return false end
