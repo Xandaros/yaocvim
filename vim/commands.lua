@@ -129,7 +129,7 @@ registerCommand({
             local buffer = window.buffer
             if buffer.file == nil then
                 status.setStatus("No file name")
-                return
+                return false
             end
             filename = buffer.file
         else
@@ -165,6 +165,7 @@ registerCommand({
         buffer:fix()
         window:fixCursor()
         buffers.updateActive()
+        return true
     end
 })
 
@@ -184,6 +185,7 @@ registerCommand({
             stts[#stts + 1] = line
         end
         status.setStatus(stts)
+        return true
     end
 })
 
@@ -192,6 +194,7 @@ registerCommand({
     execute = function(self, range, exclamation, args)
         if range[1] > range[2] then
             status.setStatus("Backwards range given. Not implemented yet")
+            return false
         end
 
         local window = Tab.getCurrent():getWindow()
@@ -204,6 +207,42 @@ registerCommand({
         window.cursor[2] = range[1]
         window.cursor[1] = util.firstNonBlank(line) or 1
         window:fixCursor()
+        return true
+    end
+})
+
+registerCommand({
+    aliases = {"w", "write"},
+    execute = function(self, range, exclamation, args)
+        local window = Tab.getCurrent():getWindow()
+        local buffer = window.buffer
+        local filename = table.concat(args, " ")
+        if filename == "" then
+            if buffer.file == nil then
+                status.setStatus("No file name")
+                return false
+            end
+            filename = buffer.file
+        end
+
+        local chars = 0
+        local f = io.open(filename, "w")
+        for _, line in pairs(buffer.content) do
+            f:write(line, "\n")
+            chars = chars + #line + 1
+        end
+        f:close()
+        status.setStatus(string.format("\"%s\" %dL, %dC written", filename, #buffer.content, chars))
+        return true
+    end
+})
+
+registerCommand({
+    aliases = {"wq"},
+    execute = function(self, range, exclamation, args)
+        if ret.execute("w") then
+            ret.execute("q")
+        end
     end
 })
 
@@ -229,7 +268,7 @@ function ret.execute(input)
             return
         end
         table.remove(split, 1)
-        cmd:execute(parsed_range, exclamation, split)
+        return cmd:execute(parsed_range, exclamation, split)
     else
         status.setStatus("Not an editor command: " .. stripped_command)
     end
