@@ -456,7 +456,7 @@ registerMotion({
     execute = function(window, count, args)
         local cursor = window.cursor
         if #args == 0 then
-            return false
+            return nil
         end
         local line = window.buffer.content[cursor[2]]
         local x = cursor[1]
@@ -503,7 +503,7 @@ registerOperator({
         local buffer = window.buffer
         local cursor = window.cursor
         local new_cursor = motion.execute(window, motion_count, motion_args)
-        if new_cursor == false then
+        if new_cursor == nil then
             return false
         end
         if motion.linewise then
@@ -518,8 +518,6 @@ registerOperator({
             end
         else
             local start, fin = sortCursors({cursor[1], cursor[2]}, new_cursor)
-            debug.log("start:", start[1])
-            debug.log("fin:", fin[1])
             if motion.exclusive then
                 fin[1] = fin[1] - 1
                 if fin[1] < 1 then
@@ -532,7 +530,7 @@ registerOperator({
                 end
             end
             buffer:deleteNormal(start, fin)
-            window.cursor = new_cursor
+            window.cursor = start
             window:fixCursor()
         end
         return true
