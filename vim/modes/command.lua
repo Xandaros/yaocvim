@@ -47,9 +47,13 @@ function ret.keyPress(charcode, keycode)
     elseif charcode == 27 or charcode == 0 and keycode == 59 then
         normalMode()
     elseif keycode == keyboard.keys.left then
-        ret.cursor = ret.cursor - 1
+        if ret.cursor > 1 then
+            ret.cursor = ret.cursor - 1
+        end
     elseif keycode == keyboard.keys.right then
-        ret.cursor = ret.cursor + 1
+        if ret.cursor < #ret.command_buffer + 1 then
+            ret.cursor = ret.cursor + 1
+        end
     -- Printable char
     elseif charcode >= 32 and charcode <= 126 then
         ret.command_buffer = ret.command_buffer:sub(1, ret.cursor - 1) .. char .. ret.command_buffer:sub(ret.cursor)
