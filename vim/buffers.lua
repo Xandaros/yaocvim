@@ -27,6 +27,17 @@ function Buffer:fix()
     end
 end
 
+function Buffer:deleteLines(start, fin)
+    if start > fin then
+        local buf = start
+        start = fin
+        fin = buf
+    end
+    for _=start, fin do
+        table.remove(self.content, start)
+    end
+end
+
 function mod.updateActive()
     for _, buffer in ipairs(mod.buffers) do
         buffer.active = false

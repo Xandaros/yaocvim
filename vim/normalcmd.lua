@@ -485,8 +485,16 @@ registerOperator({
         local buffer = window.buffer
         local cursor = window.cursor
         local new_cursor = motion.execute(window, motion_count, motion_args)
-        for i=1, (new_cursor[2] - cursor[2] + 1) * count do
-            table.remove(buffer.content, cursor[2])
+        if motion.linewise then
+            if new_cursor[2] < 1 then
+                return true
+            end
+            if new_cursor[2] > cursor[2] then
+                buffer:deleteLines(cursor[2], new_cursor[2])
+            else
+                buffer:deleteLines(new_cursor[2], cursor[2])
+                cursor[2] = new_cursor[2]
+            end
         end
         return true
     end
