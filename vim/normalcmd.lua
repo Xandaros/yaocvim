@@ -73,10 +73,10 @@ local function sortCursors(cursor1, cursor2)
     if cursor2[2] > cursor1[2] then
         return cursor1, cursor2
     end
-    if cursor2[1] > cursor1[2] then
+    if cursor2[1] > cursor1[1] then
         return cursor1, cursor2
     end
-    return cursor1, cursor2
+    return cursor2, cursor1
 end
 
 
@@ -517,9 +517,11 @@ registerOperator({
                 cursor[2] = new_cursor[2]
             end
         else
-            local start, fin = sortCursors(cursor, new_cursor)
+            local start, fin = sortCursors({cursor[1], cursor[2]}, new_cursor)
+            debug.log("start:", start[1])
+            debug.log("fin:", fin[1])
             if motion.exclusive then
-                fin = {fin[1] - 1, fin[2]}
+                fin[1] = fin[1] - 1
                 if fin[1] < 1 then
                     fin[2] = fin[2] - 1
                     local line = buffer.content[fin[2]]
@@ -530,6 +532,8 @@ registerOperator({
                 end
             end
             buffer:deleteNormal(start, fin)
+            window.cursor = new_cursor
+            window:fixCursor()
         end
         return true
     end
