@@ -459,6 +459,7 @@ registerOperator({
 registerOperator({
     key = "i",
     execute = function(window, count, motion_count, motion, motion_args)
+        window:fixCursor()
         shared.setMode(require("vim/modes/insert"), count)
         return true
     end,
@@ -467,6 +468,7 @@ registerOperator({
 registerOperator({
     key = "a",
     execute = function(window, count, motion_count, motion, motion_args)
+        window:fixCursor()
         local cursor = window.cursor
         local line = window.buffer.content[cursor[2]]
         cursor[1] = math.min(cursor[1] + 1, #line + 1)
@@ -478,6 +480,7 @@ registerOperator({
 registerOperator({
     key = "A",
     execute = function(window, count, motion_count, motion, motion_args)
+        window:fixCursor()
         local line = window.buffer.content[window.cursor[2]]
         window.cursor[1] = #line + 1
         shared.setMode(require("vim/modes/insert"), count)

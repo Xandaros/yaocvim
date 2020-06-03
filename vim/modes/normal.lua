@@ -29,7 +29,6 @@ end
 
 function ret.onSwitch()
     Tab.getCurrent():getWindow().show_cursor = true
-    Tab.getCurrent():getWindow().limit_cursor = true
 end
 
 return ret

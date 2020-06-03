@@ -7,8 +7,11 @@ mod.buffers = {}
 
 mod.Buffer = {}
 local Buffer = mod.Buffer
-
 Buffer.__index = Buffer
+
+mod.Inserter = {}
+local Inserter = mod.Inserter
+Inserter.__index = Inserter
 
 function Buffer.new(content)
     local ret = setmetatable({}, Buffer)
@@ -46,6 +49,67 @@ function Buffer:deleteNormal(start, fin)
         table.remove(self.content, start[2] + 1)
     end
     self.content[start[2]] = before .. after
+end
+
+function Buffer:startInsert(cursor)
+    local ret = setmetatable({}, Inserter)
+
+    ret.buffer = self
+    ret.cursor = cursor
+
+    return ret
+end
+
+function Inserter:addChar(char)
+    local buffer = self.buffer
+    local cursor = self.cursor
+    local line = buffer.content[cursor[2]]
+    local before = line:sub(1, cursor[1] - 1)
+    local after = line:sub(cursor[1], #line)
+    if char == "\n" or char == "\r" then
+        buffer.content[cursor[2]] = before
+        table.insert(buffer.content, cursor[2] + 1, after)
+        cursor[2] = cursor[2] + 1
+        cursor[1] = 1
+    else
+        cursor[1] = cursor[1] + 1
+        buffer.content[cursor[2]] = before .. char .. after
+    end
+end
+
+function Inserter:backspace()
+    local buffer = self.buffer
+    local cursor = self.cursor
+    local line = buffer.content[cursor[2]]
+    local before = line:sub(1, cursor[1] - 2)
+    local after = line:sub(cursor[1], #line)
+    buffer.content[cursor[2]] = before .. after
+
+    cursor[1] = cursor[1] - 1
+    if cursor[1] < 1 then
+        cursor[2] = cursor[2] - 1
+        if cursor[2] < 1 then
+            cursor[1] = 1
+            cursor[2] = 1
+            return
+        end
+        local next_line = line
+        line = buffer.content[cursor[2]]
+        cursor[1] = #line > 0 and #line + 1 or 1
+        line = line .. next_line
+        buffer.content[cursor[2]] = line
+        table.remove(buffer.content, cursor[2] + 1)
+    end
+end
+
+function Inserter:delete()
+    -- TODO: Incomplete
+    local buffer = self.buffer
+    local cursor = self.cursor
+    local line = buffer.content[cursor[2]]
+    local before = line:sub(1, cursor[1] - 1)
+    local after = line:sub(cursor[1] + 1, #line)
+    buffer.content[cursor[2]] = before .. after
 end
 
 function mod.updateActive()

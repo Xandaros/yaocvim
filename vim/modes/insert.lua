@@ -8,35 +8,29 @@ local Tab = tabs.Tab
 
 local mod = {}
 
+mod.inserter = nil
+
 local function normalMode()
     local window = Tab.getCurrent():getWindow()
     window.limit_cursor = true
     shared.setMode(require("vim/modes/normal"))
+    window.cursor[1] = window.cursor[1] - 1
+    window:fixCursor()
+    status.setStatus("")
+    mod.inserter = nil
 end
 
 function mod.keyPress(charcode, keycode)
     local window = Tab.getCurrent():getWindow()
-    local cursor = window.cursor
-    local buffer = window.buffer
     local char = string.char(charcode)
-    local line = buffer.content[cursor[2]]
-    if charcode >= 32 and charcode <= 126 then
-        line = line:sub(1, cursor[1] - 1) .. char .. line:sub(cursor[1])
-        buffer.content[cursor[2]] = line
-        cursor[1] = cursor[1] + 1
-    elseif char == "\r" or char == "\n" then
-        local next_line = line:sub(cursor[1])
-        line = line:sub(1, cursor[1] - 1)
-        buffer.content[cursor[2]] = line
-        table.insert(buffer.content, cursor[2] + 1, next_line)
-        cursor[2] = cursor[2] + 1
-        cursor[1] = 1
+    if charcode >= 32 and charcode <= 126 or char == "\r" or char == "\n" then
+        mod.inserter:addChar(char)
+    elseif char == "\b" then
+        mod.inserter:backspace()
     elseif charcode == 27 or charcode == 0 and keycode == keyboard.keys.f1 then
-        shared.setMode(require("vim/modes/normal"))
-        status.setStatus("")
-        cursor[1] = cursor[1] - 1
-        window:fixCursor()
+        normalMode()
     end
+    window:updateScroll()
 end
 
 function mod.render()
@@ -46,6 +40,7 @@ end
 function mod.onSwitch()
     local window = Tab.getCurrent():getWindow()
     window.limit_cursor = false
+    mod.inserter = window.buffer:startInsert(window.cursor)
 end
 
 return mod
