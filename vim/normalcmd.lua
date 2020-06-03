@@ -47,28 +47,6 @@ local function registerMotion(motionspec)
     mod.keys[motionspec.key] = setmetatable(motionspec, Motion)
 end
 
-local function findLongestMatch(str, tbl)
-    local key = ""
-    for k, _ in pairs(tbl) do
-        if str:sub(1, #k) == k then
-            if #k > #key then
-                key = k
-            end
-        end
-    end
-    return tbl[key], str:sub(#key + 1)
-end
-
-local function findCandidates(str, tbl)
-    local ret = {}
-    for k, v in pairs(tbl) do
-        if k:sub(1, #str) == str then
-            ret[#ret + 1] = v
-        end
-    end
-    return ret
-end
-
 local function sortCursors(cursor1, cursor2)
     if cursor2[2] > cursor1[2] then
         return cursor1, cursor2
@@ -79,32 +57,6 @@ local function sortCursors(cursor1, cursor2)
     return cursor2, cursor1
 end
 
-
---- returns:
---- True: Invalid input
---- False: Ambiguous input
---- Motion/Operator, string: Valid input, unparsed text
-local function getKey(cmd)
-    if cmd == nil then
-        return false
-    end
-    do
-        local candidates = findCandidates(cmd, mod.keys)
-        if #candidates > 0 then
-            local key = candidates[1].key
-            if cmd:sub(1, #key) ~= key then
-                return false
-            end
-        end
-    end
-
-    local action, rest = findLongestMatch(cmd, mod.keys)
-    if action == nil then
-        return true
-    end
-    return action, rest
-end
-
 local WholeLine = setmetatable({
     key = "<whole line>",
     linewise = true,
@@ -112,6 +64,22 @@ local WholeLine = setmetatable({
         return window.cursor
     end
 }, Motion)
+
+
+--- returns:
+--- True: Invalid input
+--- False: Ambiguous input
+--- Motion/Operator, string: Valid input, unparsed text
+local function findCandidate(cmd, tbl)
+    for k, _ in pairs(tbl) do
+        if cmd:sub(1, #k) == k then
+            return tbl[k], cmd:sub(#k + 1)
+        elseif k:sub(1, #cmd) == cmd then
+            return false
+        end
+    end
+    return true
+end
 
 function mod.executeNormal(cmd)
     local window = Tab.getCurrent():getWindow()
@@ -124,7 +92,7 @@ function mod.executeNormal(cmd)
     if command == nil then return false end
 
 
-    local action, args = getKey(command)
+    local action, args = findCandidate(command, mod.keys)
 
     if count == nil and type(action) == "table" then
         count = action.default_count
@@ -141,9 +109,9 @@ function mod.executeNormal(cmd)
     elseif getmetatable(action) == Operator then
         local action2, args
         if count2 ~= nil then
-            action2, args = getKey(command2)
+            action2, args = findCandidate(command2, mod.keys)
         else
-            action2, args = getKey(command:sub(#action.key + 1))
+            action2, args = findCandidate(command:sub(#action.key + 1), mod.keys)
             if type(action2) == "table" then
                 count2 = action2.default_count
             end
