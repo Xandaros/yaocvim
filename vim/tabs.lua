@@ -1,6 +1,3 @@
-local component = require("component")
-local gpu = component.gpu
-
 local windows = require("vim/windows")
 
 local Window = windows.Window

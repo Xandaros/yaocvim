@@ -10,7 +10,7 @@ function Parser:parse(input)
     if type(input) ~= "string" then
         return nil
     end
-    local match, rest = self.run(input)
+    local match, _ = self.run(input)
     return match
 end
 
@@ -127,7 +127,7 @@ function Parser.noneOf(s)
         end
         local parsers = util.map(chars, Parser.string)
         for _, parser in pairs(parsers) do
-            local match, rest = parser.run(input)
+            local match, _ = parser.run(input)
             if match ~= nil then
                 return nil, input
             end

@@ -2,10 +2,6 @@ local component = require("component")
 local gpu = component.gpu
 
 local cursor = require("vim/cursor")
-local debug = require("vim/debug")
-local util = require("vim/util")
-
-local screen_dim = {gpu.getResolution()}
 
 local mod = {}
 
@@ -57,15 +53,15 @@ function Window:scrollY(amount)
 end
 
 function Window:updateScroll()
-    local cursor = self:textToScreenCoords(self.cursor)
-    if cursor[1] < 1 then
-        self:scrollX(cursor[1] - 1)
-    elseif cursor[1] > self.w + 1 then
-        self:scrollX(cursor[1] - self.w - 1)
-    elseif cursor[2] < 1 then
-        self:scrollY(cursor[2] - 1)
-    elseif cursor[2] > self.h + 1 then
-        self:scrollY(cursor[2] - self.h - 1)
+    local cur = self:textToScreenCoords(self.cursor)
+    if cur[1] < 1 then
+        self:scrollX(cur[1] - 1)
+    elseif cur[1] > self.w + 1 then
+        self:scrollX(cur[1] - self.w - 1)
+    elseif cur[2] < 1 then
+        self:scrollY(cur[2] - 1)
+    elseif cur[2] > self.h + 1 then
+        self:scrollY(cur[2] - self.h - 1)
     end
 end
 
@@ -111,7 +107,7 @@ function Window:render()
         if self.limit_cursor and cursor_x > #cur_line then
             cursor_x = math.max(#cur_line, 1)
         end
-        cursor_pos = self:textToScreenCoords({cursor_x, self.cursor[2]})
+        local cursor_pos = self:textToScreenCoords({cursor_x, self.cursor[2]})
         local char_under_cursor = cur_line:sub(cursor_x, cursor_x)
         if char_under_cursor == nil
             or char_under_cursor == ""

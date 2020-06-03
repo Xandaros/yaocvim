@@ -1,7 +1,6 @@
 local component = require("component")
 local gpu = component.gpu
 
-local debug = require("vim/debug")
 local util = require("vim/util")
 
 local mod = {}

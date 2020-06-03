@@ -4,8 +4,6 @@ local gpu = component.gpu
 
 local tabs = require("vim/tabs")
 
-local Tab = tabs.Tab
-
 local ret = {}
 ret.status = {}
 
@@ -31,7 +29,7 @@ function ret.setStatus(status)
         end
 
         while true do
-            _, _, charcode, keycode, _ = event.pull(nil, "key_down")
+            local _, _, charcode, _keycode, _ = event.pull(nil, "key_down")
             local char = string.char(charcode)
             if char == "\r" then
                 ret.status = {}

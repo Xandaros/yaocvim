@@ -1,4 +1,3 @@
-local debug = require("vim/debug")
 local tabs = require("vim/tabs")
 
 local mod = {}

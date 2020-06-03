@@ -1,17 +1,12 @@
-local component = require("component")
-
 local buffers = require("vim/buffers")
-local debug = require("vim/debug")
 local parser = require("vim/parser")
 local status = require("vim/status")
 local tabs = require("vim/tabs")
 local util = require("vim/util")
-local windows = require("vim/windows")
 
 local Buffer = buffers.Buffer
 local Parser = parser.Parser
 local Tab = tabs.Tab
-local Window = tabs.Window
 
 local ret = {}
 
@@ -28,7 +23,8 @@ local function range_parser()
         "\\%?",
         "\\&"}, Parser.pattern))
     local offset_parser = Parser.oneOf("+-"):andThen(function(sign)
-        return Parser.option("1")(Parser.many1(Parser.digit())):andThen(function(number)  -- number <- option "1" (many1 digit)
+        -- number <- option "1" (many1 digit)
+        return Parser.option("1")(Parser.many1(Parser.digit())):andThen(function(number)
             return Parser.pure(tonumber(sign .. number))
         end)
     end)
@@ -180,8 +176,8 @@ registerCommand({
             local current = Tab.getCurrent():getWindow().buffer == v and "%" or " "
             local active = v.active and "a" or "h"
             local name = "\"" .. v.name .. "\""
-            local line = 1
-            local line = string.format("%3d %s%s   %-30s Line %d", v.id, current, active, name, line)
+            -- TODO
+            local line = string.format("%3d %s%s   %-30s Line %d", v.id, current, active, name, 1)
             stts[#stts + 1] = line
         end
         status.setStatus(stts)

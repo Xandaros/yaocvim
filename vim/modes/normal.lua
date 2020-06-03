@@ -1,9 +1,4 @@
-local keyboard = require("keyboard")
-
-local debug = require("vim/debug")
-local normalcmd = require("vim/normalcmd")
-local shared = require("vim/modes/shared")
-local status = require("vim/status")
+local normalops = require("vim/normalops")
 local tabs = require("vim/tabs")
 
 local Tab = tabs.Tab
@@ -13,14 +8,14 @@ local ret = {}
 ret.command_buffer = ""
 
 function ret.interpret_command()
-    local result = normalcmd.executeNormal(ret.command_buffer)
+    local result = normalops.executeNormal(ret.command_buffer)
     if result then
         ret.command_buffer = ""
     end
 end
 
 function ret.keyPress(charcode, keycode)
-    char = string.char(charcode)
+    local char = string.char(charcode)
     if charcode >= 32 and charcode <= 126 then
         ret.command_buffer = ret.command_buffer .. char
         ret.interpret_command()
