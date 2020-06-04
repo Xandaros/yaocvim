@@ -5,6 +5,9 @@ local cursor = require("vim/cursor")
 
 local mod = {}
 
+mod.windows = {}
+mod.next_window_id = 1000
+
 mod.Window = {}
 
 local Window = mod.Window
@@ -18,6 +21,9 @@ function Window.new(buffer, x, y, w, h)
     ret.cursor = {1, 1}
     ret.screen = {1, 1}
 
+    ret.buffer_cursors = {}
+    ret.buffer_cursors[buffer.id] = {1, 1}
+
     ret.x = x
     ret.y = y
     ret.w = w
@@ -25,6 +31,10 @@ function Window.new(buffer, x, y, w, h)
 
     ret.show_cursor = true
     ret.limit_cursor = true
+
+    ret.id = mod.next_window_id
+    mod.windows[ret.id] = ret
+    mod.next_window_id = mod.next_window_id + 1
 
     return ret
 end
@@ -82,6 +92,12 @@ function Window:fixCursor(ignoreRight)
     if self.cursor[1] < 1 then
         self.cursor[1] = 1
     end
+end
+
+function Window:setBuffer(buffer)
+    self.buffer_cursors[self.buffer.id] = self.cursor
+    self.cursor = self.buffer_cursors[buffer.id] or {1, 1}
+    self.buffer = buffer
 end
 
 function Window:render()

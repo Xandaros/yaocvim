@@ -3,6 +3,7 @@ local tabs = require("vim/tabs")
 local mod = {}
 
 mod.buffers = {}
+mod.next_buffer_id = 1
 
 mod.Buffer = {}
 local Buffer = mod.Buffer
@@ -15,12 +16,13 @@ Inserter.__index = Inserter
 function Buffer.new(content)
     local ret = setmetatable({}, Buffer)
     ret.content = content or {}
-    ret.id = #mod.buffers + 1
+    ret.id = mod.next_buffer_id
     ret.name = "[No Name]"
     ret.file = nil
     ret.active = false
 
     mod.buffers[ret.id] = ret
+    mod.next_buffer_id = mod.next_buffer_id + 1
     return ret
 end
 
