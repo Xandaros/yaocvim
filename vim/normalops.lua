@@ -232,4 +232,35 @@ registerOperator({
     end
 })
 
+registerOperator({
+    key = "<C-u>",
+    execute = function(window, count, motion_count, motion, motion_args)
+        local cursor = window.cursor
+        local screen = window.screen
+        local move_amount = count * math.ceil(window.h / 2)
+
+        screen[2] = math.max(1, screen[2] - move_amount)
+        cursor[2] = math.max(1, cursor[2] - move_amount)
+
+        window:fixCursor()
+        return true
+    end
+})
+
+registerOperator({
+    key = "<C-d>",
+    execute = function(window, count, motion_count, motion, motion_args)
+        local cursor = window.cursor
+        local screen = window.screen
+        local move_amount = count * math.ceil(window.h / 2)
+        local max_move = #window.buffer.content - window.h - screen[2]
+
+        screen[2] = math.min(screen[2] + max_move, screen[2] + move_amount)
+        cursor[2] = math.min(#window.buffer.content, cursor[2] + move_amount)
+
+        window:fixCursor()
+        return true
+    end
+})
+
 return mod
