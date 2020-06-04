@@ -90,8 +90,7 @@ function mod.executeNormal(cmd)
     local command2, rest = Parser.pattern("[^1-9]+"):runParser(rest)
     if command == nil then return false end
 
-
-    local action, args = getKey(cmd)
+    local action, args = getKey(command)
 
     if count == nil and type(action) == "table" then
         count = action.default_count
