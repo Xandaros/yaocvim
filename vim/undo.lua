@@ -21,6 +21,7 @@ function UndoTree.new(buffer)
 
     ret.current = UndoBlock.new()
     ret.buffer = buffer
+    ret.join_all = false
 
     return ret
 end
@@ -50,6 +51,9 @@ function UndoTree:joinChange(change)
 end
 
 function UndoTree:newChange(change)
+    if self.join_all then
+        return self:joinChange(change)
+    end
     local new_block = UndoBlock.new()
     if change ~= nil then
         new_block:newChange(change)
@@ -73,7 +77,7 @@ end
 
 function UndoBlock:undo(buffer)
     local last_cursor
-    for i=1, #self.changes do
+    for i=#self.changes, 1, -1 do
         last_cursor = self.changes[i]:undo(buffer)
     end
     return last_cursor
@@ -81,7 +85,7 @@ end
 
 function UndoBlock:redo(buffer)
     local last_cursor
-    for i=#self.changes, 1, -1 do
+    for i=1, #self.changes do
         last_cursor = self.changes[i]:redo(buffer)
     end
     return last_cursor
@@ -102,12 +106,12 @@ end
 
 function DeleteLineChange:undo(buffer)
     table.insert(buffer.content, self.line_no, self.line)
-    return {self.line_no, 1}
+    return {1, self.line_no}
 end
 
 function DeleteLineChange:redo(buffer)
     table.remove(buffer.content, self.line_no)
-    return {self.line_no, 1}
+    return {1, self.line_no}
 end
 
 function InsertChange.new(cursor_start, cursor_end, actions)

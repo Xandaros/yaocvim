@@ -43,7 +43,9 @@ local WholeLine = setmetatable({
     key = "<whole line>",
     linewise = true,
     execute = function(window, count, args)
-        return window.cursor
+        local cursor = {window.cursor[1], window.cursor[2]}
+        cursor[2] = cursor[2] + count - 1
+        return cursor
     end
 }, Motion)
 
@@ -185,36 +187,40 @@ registerOperator({
         if motion == nil then return false end
         local buffer = window.buffer
         local cursor = window.cursor
-        local new_cursor = motion.execute(window, motion_count, motion_args)
-        if new_cursor == nil then
-            return false
-        end
-        if motion.linewise then
-            if new_cursor[2] < 1 then
-                return true
+        for _=1, count do
+            local new_cursor = motion.execute(window, motion_count, motion_args)
+            if new_cursor == nil then
+                return false
             end
-            if new_cursor[2] > cursor[2] then
-                buffer:deleteLines(cursor[2], new_cursor[2])
-            else
-                buffer:deleteLines(new_cursor[2], cursor[2])
-                cursor[2] = new_cursor[2]
-            end
-        else
-            local start, fin = sortCursors({cursor[1], cursor[2]}, new_cursor)
-            if motion.exclusive then
-                fin[1] = fin[1] - 1
-                if fin[1] < 1 then
-                    fin[2] = fin[2] - 1
-                    local line = buffer.content[fin[2]]
-                    if line == nil then
-                        return {1, 1}
-                    end
-                    fin[1] = #line
+            if motion.linewise then
+                if new_cursor[2] < 1 then
+                    return true
                 end
+                if new_cursor[2] > cursor[2] then
+                    buffer:deleteLines(cursor[2], new_cursor[2])
+                else
+                    buffer:deleteLines(new_cursor[2], cursor[2])
+                    cursor[2] = new_cursor[2]
+                end
+            else
+                local start, fin = sortCursors({cursor[1], cursor[2]}, new_cursor)
+                if motion.exclusive then
+                    fin[1] = fin[1] - 1
+                    if fin[1] < 1 then
+                        fin[2] = fin[2] - 1
+                        local line = buffer.content[fin[2]]
+                        if line == nil then
+                            return {1, 1}
+                        end
+                        fin[1] = #line
+                    end
+                end
+                buffer:deleteNormal(start, fin)
+                window.cursor = start
             end
-            buffer:deleteNormal(start, fin)
-            window.cursor = start
+            buffer.undo_tree.join_all = true
         end
+        buffer.undo_tree.join_all = false
         window:fixCursor()
         return true
     end

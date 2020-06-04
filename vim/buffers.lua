@@ -46,9 +46,9 @@ function Buffer:deleteLines(start, fin)
         fin = buf
     end
     self.undo_tree:newChange()
-    for line_no=start, fin do
+    for line_no=fin, start, -1 do
         local line = table.remove(self.content, start)
-        self.undo_tree:joinChange(DeleteLineChange.new(line_no, line))
+        self.undo_tree:joinChange(DeleteLineChange.new(start, line))
     end
 end
 
