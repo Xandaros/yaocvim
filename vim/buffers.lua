@@ -3,6 +3,7 @@ local undo = require("vim/undo")
 
 local UndoTree = undo.UndoTree
 local DeleteLineChange = undo.DeleteLineChange
+local DeleteNormalChange = undo.DeleteNormalChange
 local InsertChange = undo.InsertChange
 
 local mod = {}
@@ -55,10 +56,17 @@ end
 function Buffer:deleteNormal(start, fin)
     local before = self.content[start[2]]:sub(1, start[1] - 1)
     local after = self.content[fin[2]]:sub(fin[1] + 1)
+    local deleted = {self.content[start[2]]:sub(start[1])}
+    local deleted_end = self.content[fin[2]]:sub(1, fin[1])
+
     for _=start[2] + 1, fin[2] do
-        table.remove(self.content, start[2] + 1)
+        deleted[#deleted + 1] = table.remove(self.content, start[2] + 1)
     end
+
+    deleted[#deleted + 1] = deleted_end
+
     self.content[start[2]] = before .. after
+    self.undo_tree:newChange(DeleteNormalChange.new(start, fin, deleted))
 end
 
 function Buffer:undo()

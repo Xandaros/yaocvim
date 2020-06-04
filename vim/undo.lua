@@ -16,12 +16,17 @@ mod.InsertChange = {}
 local InsertChange = mod.InsertChange
 InsertChange.__index = InsertChange
 
+mod.DeleteNormalChange = {}
+local DeleteNormalChange = mod.DeleteNormalChange
+DeleteNormalChange.__index = DeleteNormalChange
+
 function UndoTree.new(buffer)
     local ret = setmetatable({}, UndoTree)
 
     ret.current = UndoBlock.new()
     ret.buffer = buffer
     ret.join_all = false
+    ret.locked = false
 
     return ret
 end
@@ -47,10 +52,12 @@ function UndoTree:redo()
 end
 
 function UndoTree:joinChange(change)
+    if self.locked then return end
     self.current:newChange(change)
 end
 
 function UndoTree:newChange(change)
+    if self.locked then return end
     if self.join_all then
         return self:joinChange(change)
     end
@@ -152,6 +159,38 @@ function InsertChange:redo(buffer)
         end
     end
     return cursor
+end
+
+function DeleteNormalChange.new(start, fin, text)
+    local ret = setmetatable({}, DeleteNormalChange)
+
+    ret.start = start
+    ret.fin = fin
+    ret.text = text
+
+    return ret
+end
+
+function DeleteNormalChange:undo(buffer)
+    local cursor = {self.start[1], self.start[2]}
+    local before = buffer.content[cursor[2]]:sub(1, cursor[1] - 1)
+    local after = buffer.content[cursor[2]]:sub(cursor[1])
+
+    buffer.content[cursor[2]] = before .. self.text[1]
+
+    for i=2, #self.text - 1 do
+        table.insert(buffer.content, cursor[2] + i - 1, self.text[i])
+    end
+
+    buffer.content[cursor[2] + #self.text - 2] = self.text[#self.text] .. after
+end
+
+function DeleteNormalChange:redo(buffer)
+    buffer.undo_tree.locked = true
+
+    buffer:deleteNormal(self.start, self.fin)
+
+    buffer.undo_tree.locked = false
 end
 
 return mod
