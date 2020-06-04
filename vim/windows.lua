@@ -105,6 +105,14 @@ function Window:setBuffer(buffer)
     self:updateScroll()
 end
 
+function Window:getBufferCursor(buf_id)
+    if self.buffer.id == buf_id then
+        return self.cursor
+    else
+        return self.buffer_cursors[buf_id]
+    end
+end
+
 function Window:render()
     local buffer = self.buffer
     if #buffer.content == 0 then

@@ -164,14 +164,16 @@ registerCommand({
     default_range = "",
     range_handler = range_handlers.none,
     execute = function(self, range, exclamation, args)
-        local stts = status.status
+        local stts = {}
+        local window = Tab.getCurrent():getWindow()
 
         for k, v in pairs(buffers.buffers) do
-            local current = Tab.getCurrent():getWindow().buffer == v and "%" or " "
+            local current = window.buffer == v and "%" or " "
             local active = v.active and "a" or "h"
             local name = "\"" .. v.name .. "\""
-            -- TODO
-            local line = string.format("%3d %s%s   %-30s Line %d", v.id, current, active, name, 1)
+            local cursor = window:getBufferCursor(v.id) or {0, 0}
+            local line_no = cursor[2]
+            local line = string.format("%3d %s%s   %-30s Line %d", v.id, current, active, name, line_no)
             stts[#stts + 1] = line
         end
         status.setStatus(stts)
