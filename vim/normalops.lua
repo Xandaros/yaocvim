@@ -76,6 +76,7 @@ local function mergeCandidates(candidate1, args1, candidate2, args2)
 end
 
 local function getKey(cmd)
+    if cmd == nil then return false end
     local action1, args1 = findCandidate(cmd, mod.operators)
     local action2, args2 = findCandidate(cmd, motions.motions)
     return mergeCandidates(action1, args1, action2, args2)
