@@ -138,4 +138,20 @@ function InsertChange:undo(buffer)
     return cursor
 end
 
+function InsertChange:redo(buffer)
+    local cursor = {table.unpack(self.cursor_start)}
+    local inserter = buffer:startInsert(cursor)
+    for i=1, #self.actions do
+        local action = self.actions[i]
+        if type(action) == "string" then
+            for j=1, #action do
+                inserter:addChar(action:sub(j, j))
+            end
+        elseif action[1] == "backspace" then
+            inserter:backspace()
+        end
+    end
+    return cursor
+end
+
 return mod
