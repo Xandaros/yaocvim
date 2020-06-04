@@ -1,4 +1,9 @@
 local tabs = require("vim/tabs")
+local undo = require("vim/undo")
+
+local UndoTree = undo.UndoTree
+local DeleteLineChange = undo.DeleteLineChange
+local InsertChange = undo.InsertChange
 
 local mod = {}
 
@@ -21,6 +26,8 @@ function Buffer.new(content)
     ret.file = nil
     ret.active = false
 
+    ret.undo_tree = UndoTree.new(ret)
+
     mod.buffers[ret.id] = ret
     mod.next_buffer_id = mod.next_buffer_id + 1
     return ret
@@ -38,8 +45,10 @@ function Buffer:deleteLines(start, fin)
         start = fin
         fin = buf
     end
-    for _=start, fin do
-        table.remove(self.content, start)
+    self.undo_tree:newChange()
+    for line_no=start, fin do
+        local line = table.remove(self.content, start)
+        self.undo_tree:joinChange(DeleteLineChange.new(line_no, line))
     end
 end
 
@@ -52,11 +61,21 @@ function Buffer:deleteNormal(start, fin)
     self.content[start[2]] = before .. after
 end
 
+function Buffer:undo()
+    return self.undo_tree:undo()
+end
+
+function Buffer:redo()
+    return self.undo_tree:redo()
+end
+
 function Buffer:startInsert(cursor)
     local ret = setmetatable({}, Inserter)
 
     ret.buffer = self
     ret.cursor = cursor
+    ret.cursor_start = {cursor[1], cursor[2]}
+    ret.actions = {}
 
     return ret
 end
@@ -76,6 +95,7 @@ function Inserter:addChar(char)
         cursor[1] = cursor[1] + 1
         buffer.content[cursor[2]] = before .. char .. after
     end
+    self.actions[#self.actions + 1] = char
 end
 
 function Inserter:backspace()
@@ -84,6 +104,12 @@ function Inserter:backspace()
     local line = buffer.content[cursor[2]]
     local before = line:sub(1, cursor[1] - 2)
     local after = line:sub(cursor[1], #line)
+    local deletedChar
+    if cursor[1] > 1 then
+        deletedChar = buffer.content[cursor[2]]:sub(cursor[1] - 1)
+    else
+        deletedChar = "\n"
+    end
     buffer.content[cursor[2]] = before .. after
 
     cursor[1] = cursor[1] - 1
@@ -101,6 +127,7 @@ function Inserter:backspace()
         buffer.content[cursor[2]] = line
         table.remove(buffer.content, cursor[2] + 1)
     end
+    self.actions[#self.actions + 1] = {"backspace", deletedChar}
 end
 
 function Inserter:delete()
@@ -111,6 +138,27 @@ function Inserter:delete()
     local before = line:sub(1, cursor[1] - 1)
     local after = line:sub(cursor[1] + 1, #line)
     buffer.content[cursor[2]] = before .. after
+end
+
+function Inserter:commit()
+    local actions = {}
+    for _, action in ipairs(self.actions) do
+        local actions_len = #actions
+        local latest = actions[actions_len]
+        if actions_len == 0 then
+            actions[1] = action
+        elseif type(latest) == "string" and type(action) == "string" then
+            actions[actions_len] = latest .. action
+        elseif latest[1] == "backspace" and action[1] == "backspace" then
+            latest[2] = latest[2] .. action[2]
+        else
+            actions[actions_len + 1] = action
+        end
+    end
+
+    local cursor_end = {self.cursor[1], self.cursor[2]}
+
+    self.buffer.undo_tree:newChange(InsertChange.new(self.cursor_start, cursor_end, actions))
 end
 
 function mod.updateActive()

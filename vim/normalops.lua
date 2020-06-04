@@ -1,6 +1,7 @@
 local motions = require("vim/motions")
 local parser = require("vim/parser")
 local shared = require("vim/modes/shared")
+local status = require("vim/status")
 local tabs = require("vim/tabs")
 
 local Motion = motions.Motion
@@ -258,6 +259,34 @@ registerOperator({
         cursor[2] = math.min(#window.buffer.content, cursor[2] + move_amount)
 
         window:fixCursor()
+        return true
+    end
+})
+
+registerOperator({
+    key = "u",
+    execute = function(window, count, motion_count, motion, motion_args)
+        local new_cursor = window.buffer:undo()
+        if new_cursor then
+            window.cursor = new_cursor
+            window:fixCursor()
+        else
+            status.setStatus("Already at oldest change")
+        end
+        return true
+    end
+})
+
+registerOperator({
+    key = "<C-r>",
+    execute = function(window, count, motion_count, motion, motion_args)
+        local new_cursor = window.buffer:redo()
+        if new_cursor then
+            window.cursor = new_cursor
+            window:fixCursor()
+        else
+            status.setStatus("Already at newest change")
+        end
         return true
     end
 })
