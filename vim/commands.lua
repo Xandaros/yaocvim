@@ -132,9 +132,6 @@ registerCommand({
             for k, v in pairs(buffers.buffers) do
                 if v.file == filename then
                     window:setBuffer(v)
-                    v:fix()
-                    window:fixCursor()
-                    buffers.updateActive()
                     return
                 end
             end
@@ -158,9 +155,6 @@ registerCommand({
         buffer.file = filename
         buffer.name = filename
         window:setBuffer(buffer)
-        buffer:fix()
-        window:fixCursor()
-        buffers.updateActive()
         return true
     end
 })

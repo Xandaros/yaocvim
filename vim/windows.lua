@@ -95,9 +95,14 @@ function Window:fixCursor(ignoreRight)
 end
 
 function Window:setBuffer(buffer)
+    local buffers = require("vim/buffers")
     self.buffer_cursors[self.buffer.id] = self.cursor
     self.cursor = self.buffer_cursors[buffer.id] or {1, 1}
     self.buffer = buffer
+    buffer:fix()
+    self:fixCursor()
+    buffers.updateActive()
+    self:updateScroll()
 end
 
 function Window:render()
