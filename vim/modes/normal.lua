@@ -14,10 +14,9 @@ function ret.interpret_command()
     end
 end
 
-function ret.keyPress(charcode, keycode)
-    local char = string.char(charcode)
-    if charcode >= 32 and charcode <= 126 then
-        ret.command_buffer = ret.command_buffer .. char
+function ret.keyPress(event)
+    if not event:isModifier() then
+        ret.command_buffer = ret.command_buffer .. event:toVimSyntax()
         ret.interpret_command()
     end
 end

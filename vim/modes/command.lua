@@ -23,10 +23,9 @@ local function normalMode()
     shared.setMode(require("vim/modes/normal"))
 end
 
-function ret.keyPress(charcode, keycode)
-    local char = string.char(charcode)
+function ret.keyPress(event)
     -- Backspace
-    if char == "\b" then
+    if event.char == "\b" then
         if #ret.command_buffer == 0 then
             status.setStatus("")
             normalMode()
@@ -37,26 +36,28 @@ function ret.keyPress(charcode, keycode)
             ret.cursor = ret.cursor - 1
         end
     -- Enter
-    elseif char == "\r" then
+    elseif event:isReturn() then
         local command = ret.command_buffer
         normalMode()
         if command ~= "" then
             commands.execute(command)
         end
     -- ESC(C-[), F1
-    elseif charcode == 27 or charcode == 0 and keycode == 59 then
+    elseif event:isEscape() then
         normalMode()
-    elseif keycode == keyboard.keys.left then
+    elseif event.keycode == keyboard.keys.left then
         if ret.cursor > 1 then
             ret.cursor = ret.cursor - 1
         end
-    elseif keycode == keyboard.keys.right then
+    elseif event.keycode == keyboard.keys.right then
         if ret.cursor < #ret.command_buffer + 1 then
             ret.cursor = ret.cursor + 1
         end
     -- Printable char
-    elseif charcode >= 32 and charcode <= 126 then
-        ret.command_buffer = ret.command_buffer:sub(1, ret.cursor - 1) .. char .. ret.command_buffer:sub(ret.cursor)
+    elseif event:isPrintable() then
+        local before = ret.command_buffer:sub(1, ret.cursor - 1)
+        local after = ret.command_buffer:sub(ret.cursor)
+        ret.command_buffer = before .. event.char .. after
         ret.cursor = ret.cursor + 1
     end
 end

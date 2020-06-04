@@ -1,5 +1,3 @@
-local keyboard = require("keyboard")
-
 local shared = require("vim/modes/shared")
 local status = require("vim/status")
 local tabs = require("vim/tabs")
@@ -20,14 +18,13 @@ local function normalMode()
     mod.inserter = nil
 end
 
-function mod.keyPress(charcode, keycode)
+function mod.keyPress(event)
     local window = Tab.getCurrent():getWindow()
-    local char = string.char(charcode)
-    if charcode >= 32 and charcode <= 126 or char == "\r" or char == "\n" then
-        mod.inserter:addChar(char)
-    elseif char == "\b" then
+    if event:isPrintable() or event:isReturn() then
+        mod.inserter:addChar(event.char)
+    elseif event.char == "\b" then
         mod.inserter:backspace()
-    elseif charcode == 27 or charcode == 0 and keycode == keyboard.keys.f1 then
+    elseif event:isEscape() then
         normalMode()
     end
     window:updateScroll()

@@ -6,21 +6,17 @@ for k, v in pairs(package.loaded) do
 end
 
 local component = require("component")
-local event = require("event")
 local gpu = component.gpu
 
 local buffers = require("vim/buffers")
 local cursor = require("vim/cursor")
-local enums = require("vim/enums")
+local events = require("vim/events")
 local modes = require("vim/modes/all")
 local status = require("vim/status")
 local tabs = require("vim/tabs")
-local util = require("vim/util")
-local windows = require("vim/windows")
 
 local Buffer = buffers.Buffer
 local Tab = tabs.Tab
-local Window = windows.Window
 
 local screen_dim = {gpu.getResolution()}
 
@@ -53,8 +49,10 @@ local function main()
     createInitialTab()
     render()
     while (true) do
-        local _, _, charcode, keycode, _ = event.pull(nil, "key_down")
-        modes.shared.mode.keyPress(charcode, keycode)
+        local event = events.pull()
+        if getmetatable(event) == events.KeyboardEvent then
+            modes.shared.mode.keyPress(event)
+        end
         render()
     end
 end
