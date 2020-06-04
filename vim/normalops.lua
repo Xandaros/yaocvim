@@ -213,8 +213,8 @@ registerOperator({
             end
             buffer:deleteNormal(start, fin)
             window.cursor = start
-            window:fixCursor()
         end
+        window:fixCursor()
         return true
     end
 })
