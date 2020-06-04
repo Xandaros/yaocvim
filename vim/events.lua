@@ -24,11 +24,15 @@ function KeyboardEvent.new(charcode, keycode)
     return ret
 end
 
+local function inPrintableRange(charcode)
+    return charcode >= 32 and charcode <= 126
+end
+
 function KeyboardEvent:isPrintable()
     if self.ctrl or self.alt then
         return false
     end
-    return self.charcode >= 32 and self.charcode <= 126
+    return inPrintableRange(self.charcode)
 end
 
 function KeyboardEvent:isModifier()
@@ -48,27 +52,57 @@ function KeyboardEvent:isEscape()
     return self.charcode == 27 or event.charcode == 0 and event.keycode == keyboard.keys.f1
 end
 
-function KeyboardEvent:toVimSyntax()
+function KeyboardEvent:vimSyntaxInner()
     local char_lookup = {
-        ["<"] = "<LT>",
-        [">"] = "<GT>"
+        ["<"] = "LT",
+        [">"] = "GT",
+        ["\b"] = "BS"
     }
     if char_lookup[self.char] then
         return char_lookup[self.char]
     end
+    local prefix = ""
+    if self.shift then
+        prefix = "S-"
+    end
+    if self.alt then
+        prefix = "M-" .. prefix
+    end
+    if self:isEscape() then
+        return prefix .. "ESC"
+    end
+    if self:isReturn() then
+        return prefix .. "RET"
+    end
+    if self.char == "\b" then
+        return prefix .. "BS"
+    end
+
+    prefix = ""
+    if self.ctrl then
+        prefix = "C-" .. prefix
+    end
+    if self.alt then
+        prefix = "M-" .. prefix
+    end
+
+    local char = self.char
+    if not inPrintableRange(self.charcode) then
+        char = keyboard.keys[self.keycode]
+        if char == nil or #char > 1 then
+            return ""
+        end
+    end
+
+    return prefix .. char
+end
+
+function KeyboardEvent:toVimSyntax()
     if self:isPrintable() then
         return self.char
     end
-    if self:isEscape() then
-        return "<ESC>"
-    end
-    if self:isReturn() then
-        return "<RET>"
-    end
-    if self.char == "\b" then
-        return "<BS>"
-    end
-    return ""
+    local inner = self:vimSyntaxInner()
+    return inner and "<" .. inner .. ">" or ""
 end
 
 function mod.pull()
