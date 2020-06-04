@@ -34,19 +34,35 @@ local function render()
     cursor.renderCursor()
 end
 
-local function createInitialTab()
+local function createInitialTab(args)
     local bottom_reserve = 1
     local left_reserve = 0
 
     local first_buffer = Buffer.new()
+    if #args > 0 then
+        local file = io.open(args[1])
+        if file ~= nil then
+            first_buffer.content = {}
+            local line = file:read()
+            while line ~= nil do
+                first_buffer.content[#first_buffer.content + 1] = line
+                line = file:read()
+            end
+            file:close()
+        end
+
+        first_buffer.file = args[1]
+        first_buffer.name = args[1]
+    else
+        first_buffer.content = {""}
+    end
     first_buffer.active = true
-    first_buffer.content = {""}
 
     Tab.new(first_buffer, left_reserve + 1, 1, screen_dim[1] - left_reserve - 1, screen_dim[2] - bottom_reserve - 1)
 end
 
-local function main()
-    createInitialTab()
+local function main(args)
+    createInitialTab(args)
     render()
     while (true) do
         local event = events.pull()
@@ -57,4 +73,4 @@ local function main()
     end
 end
 
-main()
+main({...})
