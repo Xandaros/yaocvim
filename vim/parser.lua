@@ -2,7 +2,8 @@ local util = require("vim/util")
 
 local mod = {}
 
-mod.Parser = {}
+mod.Parser = {
+}
 local Parser = mod.Parser
 Parser.__index = Parser
 
@@ -52,6 +53,10 @@ function Parser:andAlso(parser)
     return self:andThen(function(_) return parser end)
 end
 
+function Parser:andAlsoL(parser)
+    return self:andThen(function(x) return parser:map(util.const(x)) end)
+end
+
 function Parser:map(f)
     return self:andThen(function(x)
         return Parser.pure(f(x))
@@ -83,6 +88,12 @@ function Parser:orElse(parser)
         return parser.run(input)
     end)
 end
+
+---
+
+Parser.__add = Parser.orElse
+Parser.__mul = Parser.andAlso
+Parser.__sub = Parser.andAlsoL
 
 ----------
 -- Char --
@@ -164,9 +175,7 @@ end
 
 function Parser.satisfy(f)
     return Parser.anyChar():andThen(function(match)
-        return Parser.func(function(input)
-            return f(match) and Parser.pure(match) or Parser.fail()
-        end)
+        return f(match) and Parser.pure(match) or Parser.fail()
     end)
 end
 
@@ -280,6 +289,16 @@ function Parser.many1(parser)
         parser,
         Parser.many(parser)
     )
+end
+
+function Parser.eof()
+    return Parser.func(function(input)
+        if input == "" then
+            return "", input
+        else
+            return nil, input
+        end
+    end)
 end
 
 return mod

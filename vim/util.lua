@@ -53,4 +53,28 @@ function mod.flip(f)
     end
 end
 
+function mod.const(a)
+    return function(b)
+        return a
+    end
+end
+
+function mod.split(s, sep)
+    local ret = {}
+    local last_idx = 0
+    while true do
+        local start_idx, end_idx = s:find(sep, last_idx + 1)
+        if start_idx == nil then
+            ret[#ret + 1] = s:sub(last_idx + 1, #s)
+            return ret
+        end
+        ret[#ret + 1] = s:sub(last_idx + 1, start_idx - 1)
+        last_idx = end_idx
+    end
+end
+
+function mod.startswith(s, prefix)
+    return s:sub(1, #prefix) == prefix
+end
+
 return mod
