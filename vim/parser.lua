@@ -203,7 +203,7 @@ function Parser.choice(...)
     end)
 end
 
-function Parser.inOrder(...)
+function Parser.concat(...)
     local args = {...}
     return Parser.func(function(input)
         if #args == 0 then
@@ -285,7 +285,7 @@ function Parser.many(parser)
 end
 
 function Parser.many1(parser)
-    return Parser.inOrder(
+    return Parser.concat(
         parser,
         Parser.many(parser)
     )
