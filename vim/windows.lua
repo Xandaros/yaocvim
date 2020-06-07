@@ -32,6 +32,8 @@ function Window.new(buffer, x, y, w, h)
     ret.show_cursor = true
     ret.limit_cursor = true
 
+    ret.options = {}
+
     ret.id = mod.next_window_id
     mod.windows[ret.id] = ret
     mod.next_window_id = mod.next_window_id + 1

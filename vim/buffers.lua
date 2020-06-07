@@ -26,6 +26,7 @@ function Buffer.new(content)
     ret.name = "[No Name]"
     ret.file = nil
     ret.active = false
+    ret.options = {}
 
     ret.undo_tree = UndoTree.new(ret)
 

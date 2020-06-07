@@ -24,6 +24,8 @@ function Tab.new(buffer, x, y, w, h)
     ret.y = y
     ret.w = w
     ret.h = h
+
+    ret.options = {}
     return ret
 end
 

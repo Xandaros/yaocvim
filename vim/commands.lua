@@ -1,4 +1,6 @@
 local buffers = require("vim/buffers")
+local enums = require("vim/enums")
+local options = require("vim/options")
 local parser = require("vim/parser")
 local status = require("vim/status")
 local tabs = require("vim/tabs")
@@ -235,6 +237,82 @@ registerCommand({
         if ret.execute("w") then
             ret.execute("q")
         end
+    end
+})
+
+registerCommand({
+    aliases = {"set", "se"},
+    default_range = "",
+    range_handler = range_handlers.none,
+    execute = function(self, range, exclamation, args)
+        if #args == 0 then
+            status.setStatus("Not implemented yet")
+            return false
+        end
+        for _, arg in ipairs(args) do
+            local parsed = options.optionparser:parse(arg)
+            if not options.isValid(parsed[2]) then
+                status.setStatus("Unknown option: " .. parsed[2])
+                return false
+            end
+            local option = options.getOption(parsed[2])
+            if parsed[1] == "change" then
+                local value = parsed[4]
+                if option.typ == enums.TYPE_NUMBER then
+                    value = tonumber(value)
+                    if value == nil then
+                        status.setStatus("Number required after=: " .. arg)
+                        return false
+                    end
+                elseif option.typ == enums.TYPE_BOOLEAN then
+                    status.setStatus("Invalid argument: " .. arg)
+                    return false
+                end
+                if parsed[3] == "=" then
+                    options.set(parsed[2], value)
+                else
+                    status.setStatus("Not implemented yet")
+                    return false
+                    -- local cur_val = options.get(parsed[2])
+                    -- if parsed[3] == "+=" then
+                    -- elseif parsed[3] == "^=" then
+                    -- elseif parsed[3] == "-=" then
+                    -- end
+                end
+            elseif parsed[1] == "setFalse" then
+                if option.typ ~= enums.TYPE_BOOLEAN then
+                    status.setStatus("Invalid argument: " .. arg)
+                    return false
+                end
+                options.set(parsed[2], false)
+            elseif parsed[1] == "bare" then
+                if option.typ == enums.TYPE_BOOLEAN then
+                    options.set(parsed[2], true)
+                else
+                    status.setStatus(parsed[2] .. "=" .. options.get(parsed[2]))
+                end
+            elseif parsed[1] == "setDefault" then
+                status.setStatus("Not implemented yet")
+                return false
+            elseif parsed[1] == "show" then
+                if option.typ == enums.TYPE_BOOLEAN then
+                    if options.get(parsed[2]) then
+                        status.setStatus(option.aliases[1])
+                    else
+                        status.setStatus("no" .. option.aliases[1])
+                    end
+                else
+                    status.setStatus(parsed[2] .. "=" .. options.get(parsed[2]))
+                end
+            elseif parsed[1] == "invert" then
+                if option.typ ~= enums.TYPE_BOOLEAN then
+                    status.setStatus("Invalid argument: " .. arg)
+                    return false
+                end
+                options.set(parsed[2], not options.get(parsed[2]))
+            end
+        end
+        return true
     end
 })
 

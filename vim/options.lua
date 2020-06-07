@@ -39,10 +39,11 @@ function mod.set(option, value)
     if not obj then
         return false
     end
-    if option.locality == enums.LOCALITY_GLOBAL then
+    require("vim/debug").log("Locality:", obj.locality)
+    if obj.locality == enums.LOCALITY_GLOBAL then
         obj.value = value
     else
-        getOptionTable(obj)[obj.aliases[1]].value = value
+        getOptionTable(obj)[obj.aliases[1]] = value
     end
 end
 
@@ -55,7 +56,7 @@ function mod.get(option)
     if obj.locality == enums.LOCALITY_GLOBAL then
         ret = obj.value
     else
-        ret = getOptionTable(obj)[obj.aliases[1]].value
+        ret = getOptionTable(obj)[obj.aliases[1]]
     end
 
     if ret == nil then
@@ -64,7 +65,16 @@ function mod.get(option)
     return ret
 end
 
-function mod.optionparser()
+function mod.isValid(option)
+    require("vim/debug").logTable(mod.options)
+    return mod.options[option] and true or false
+end
+
+function mod.getOption(option)
+    return mod.options[option]
+end
+
+do
     local function mktbl(first)
         return function(second)
             return {first, second}
@@ -88,7 +98,7 @@ function mod.optionparser()
             end)
         end)
     end)
-    return (invert:map(mktbl("invert"))
+    mod.optionparser = (invert:map(mktbl("invert"))
         + setFalse:map(mktbl("setFalse"))
         + setDefault:map(mktbl("setDefault"))
         + showValue:map(mktbl("show"))
@@ -99,7 +109,7 @@ end
 local function registerOption(optionspec)
     setmetatable(optionspec, Option)
     optionspec.value = optionspec.default_value
-    for _, alias in ipairs(optionspec) do
+    for _, alias in ipairs(optionspec.aliases) do
         mod.options[alias] = optionspec
     end
 end
@@ -107,6 +117,12 @@ end
 registerOption({
     aliases = {"hidden", "hid"},
     default_value = false
+})
+
+registerOption({
+    aliases = {"test"},
+    default_value = "asd",
+    typ = enums.TYPE_STRING
 })
 
 return mod
