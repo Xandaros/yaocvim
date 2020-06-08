@@ -20,6 +20,11 @@ mod.DeleteNormalChange = {}
 local DeleteNormalChange = mod.DeleteNormalChange
 DeleteNormalChange.__index = DeleteNormalChange
 
+mod.AddLineChange = {}
+local AddLineChange = mod.AddLineChange
+AddLineChange.__index = AddLineChange
+
+
 function UndoTree.new(buffer)
     local ret = setmetatable({}, UndoTree)
 
@@ -27,6 +32,7 @@ function UndoTree.new(buffer)
     ret.buffer = buffer
     ret.last_write = ret.current
     ret.join_all = false
+    ret.join_next = false
     ret.locked = false
 
     return ret
@@ -59,6 +65,10 @@ end
 
 function UndoTree:newChange(change)
     if self.locked then return end
+    if self.join_next then
+        self.join_next = false
+        return self:joinChange(change)
+    end
     if self.join_all then
         return self:joinChange(change)
     end
@@ -204,6 +214,25 @@ function DeleteNormalChange:redo(buffer)
     buffer:deleteNormal(self.start, self.fin)
 
     buffer.undo_tree.locked = false
+end
+
+function AddLineChange.new(line_no, line)
+    local ret = setmetatable({}, AddLineChange)
+
+    ret.line_no = line_no
+    ret.line = line
+
+    return ret
+end
+
+function AddLineChange:undo(buffer)
+    table.remove(buffer.content, self.line_no)
+    return {1, self.line_no}
+end
+
+function AddLineChange:redo(buffer)
+    table.insert(buffer.content, self.line_no, self.line)
+    return {1, self.line_no}
 end
 
 return mod

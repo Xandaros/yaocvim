@@ -5,6 +5,7 @@ local UndoTree = undo.UndoTree
 local DeleteLineChange = undo.DeleteLineChange
 local DeleteNormalChange = undo.DeleteNormalChange
 local InsertChange = undo.InsertChange
+local AddLineChange = undo.AddLineChange
 
 local mod = {}
 
@@ -68,6 +69,11 @@ function Buffer:deleteNormal(start, fin)
 
     self.content[start[2]] = before .. after
     self.undo_tree:newChange(DeleteNormalChange.new(start, fin, deleted))
+end
+
+function Buffer:addLine(line_no, text)
+    table.insert(self.content, line_no, text)
+    self.undo_tree:newChange(AddLineChange.new(line_no, text))
 end
 
 function Buffer:undo()

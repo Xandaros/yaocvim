@@ -189,6 +189,33 @@ registerOperator({
 })
 
 registerOperator({
+    key = "o",
+    execute = function(window, count, motion_count, motion, motion_args)
+        local cursor = window.cursor
+        local buffer = window.buffer
+        buffer:addLine(cursor[2] + 1, "")
+        cursor[2] = cursor[2] + 1
+        cursor[1] = 1
+        buffer.undo_tree.join_next = true
+        shared.setMode(require('vim/modes/insert'), count)
+        return true
+    end,
+})
+
+registerOperator({
+    key = "O",
+    execute = function(window, count, motion_count, motion, motion_args)
+        local cursor = window.cursor
+        local buffer = window.buffer
+        buffer:addLine(cursor[2], "")
+        cursor[1] = 1
+        buffer.undo_tree.join_next = true
+        shared.setMode(require('vim/modes/insert'), count)
+        return true
+    end,
+})
+
+registerOperator({
     key = "d",
     execute = function(window, count, motion_count, motion, motion_args)
         if motion == nil then return false end

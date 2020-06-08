@@ -8,10 +8,6 @@ function ret.setMode(mode, count)
     end
     if type(mode) == "table" then
         ret.mode = mode
-    elseif mode == "normal" then
-        ret.mode = ret.normal
-    elseif mode == "command" then
-        ret.mode = ret.command
     end
 
     if ret.mode.onSwitch ~= nil then
