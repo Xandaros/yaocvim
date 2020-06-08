@@ -112,6 +112,16 @@ registerCommand({
     default_range = "",
     range_handler = range_handlers.none,
     execute = function(self, range, exclamation, args)
+        if not exclamation then
+            local window = Tab.getCurrent():getWindow()
+            for _, buf in ipairs(buffers.buffers) do
+                if buf:isChanged() then
+                    status.setStatus("No write since last change in buffer \"" .. buf.name .. "\"")
+                    window:setBuffer(buf)
+                    return false
+                end
+            end
+        end
         os.exit()
     end
 })
@@ -123,22 +133,36 @@ registerCommand({
     execute = function(self, range, exclamation, args)
         local filename = args[1]
         local window = Tab.getCurrent():getWindow()
+        if not exclamation and not options.get("hidden") and window.buffer:isChanged() then
+            status.setStatus("No write since last change (add ! to override)")
+            return false
+        end
+        local buffer = nil
         if filename == nil then
-            local buffer = window.buffer
+            buffer = window.buffer
             if buffer.file == nil then
                 status.setStatus("No file name")
                 return false
             end
+            if not exclamation and window.buffer:isChanged() then
+                status.setStatus("No write since last change (add ! to override)")
+                return false
+            end
             filename = buffer.file
+            buffer.undo_tree:resetToWrite()
         else
             for k, v in pairs(buffers.buffers) do
                 if v.file == filename then
-                    window:setBuffer(v)
-                    return
+                    if options.get("hidden") then
+                        window:setBuffer(v)
+                        return
+                    else
+                        buffer = v
+                        buffer.undo_tree:resetToWrite()
+                    end
                 end
             end
         end
-        local buffer = nil
         if buffer == nil then
             buffer = Buffer.new()
         end
@@ -226,6 +250,7 @@ registerCommand({
             chars = chars + #line + 1
         end
         f:close()
+        buffer:markWritten()
         status.setStatus(string.format("\"%s\" %dL, %dC written", filename, #buffer.content, chars))
         return true
     end

@@ -25,6 +25,7 @@ function UndoTree.new(buffer)
 
     ret.current = UndoBlock.new()
     ret.buffer = buffer
+    ret.last_write = ret.current
     ret.join_all = false
     ret.locked = false
 
@@ -69,6 +70,18 @@ function UndoTree:newChange(change)
     self.current.following[#self.current.following + 1] = new_block
     self.current.branch_id = #self.current.following
     self.current = new_block
+end
+
+function UndoTree:markWritten()
+    self.last_write = self.current
+end
+
+function UndoTree:isChanged()
+    return self.last_write ~= self.current
+end
+
+function UndoTree:resetToWrite()
+    self.current = self.last_write
 end
 
 function UndoBlock.new()

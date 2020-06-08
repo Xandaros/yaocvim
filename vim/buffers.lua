@@ -78,6 +78,14 @@ function Buffer:redo()
     return self.undo_tree:redo()
 end
 
+function Buffer:markWritten()
+    self.undo_tree:markWritten()
+end
+
+function Buffer:isChanged()
+    return self.undo_tree:isChanged()
+end
+
 function Buffer:startInsert(cursor)
     local ret = setmetatable({}, Inserter)
 
