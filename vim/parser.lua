@@ -89,12 +89,6 @@ function Parser:orElse(parser)
     end)
 end
 
----
-
-Parser.__add = Parser.orElse
-Parser.__mul = Parser.andAlso
-Parser.__sub = Parser.andAlsoL
-
 ----------
 -- Char --
 ----------
@@ -203,6 +197,16 @@ function Parser.choice(...)
     end)
 end
 
+function Parser:append(pval)
+    return self:andThen(function(tbl)
+        return pval:andThen(function(val)
+            local new_tbl = {table.unpack(tbl)}
+            new_tbl[#tbl + 1] = val
+            return Parser.pure(new_tbl)
+        end)
+    end)
+end
+
 function Parser.concat(...)
     local args = {...}
     return Parser.func(function(input)
@@ -300,5 +304,12 @@ function Parser.eof()
         end
     end)
 end
+
+---
+
+Parser.__add = Parser.orElse
+Parser.__mul = Parser.andAlso
+Parser.__sub = Parser.andAlsoL
+Parser.__div = Parser.append
 
 return mod
