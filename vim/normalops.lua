@@ -101,12 +101,15 @@ function mod.executeNormal(cmd)
     end
     if getmetatable(action) == Motion then
         local new_cur = action.execute(window, count, args)
-        if new_cur ~= nil then
+        if type(new_cur) == "table" then
             window.cursor = new_cur
             window:updateScroll()
             return true
         else
-            return false
+            if new_cur == nil then
+                return true
+            end
+            return new_cur
         end
     elseif getmetatable(action) == Operator then
         local action2, args2
@@ -121,7 +124,11 @@ function mod.executeNormal(cmd)
 
         if action2 == false or getmetatable(action2) == Motion then
             if action2 == false then action2 = nil end
-            return action.execute(window, count, count2, action2, args2)
+            local new_cur = action.execute(window, count, count2, action2, args2)
+            if new_cur == nil then
+                return true
+            end
+            return new_cur
         elseif getmetatable(action2) == Operator then
             if action2 == action then
                 return action.execute(window, count, count2, WholeLine, args2)
@@ -190,6 +197,8 @@ registerOperator({
         for _=1, count do
             local new_cursor = motion.execute(window, motion_count, motion_args)
             if new_cursor == nil then
+                return true
+            elseif new_cursor == false then
                 return false
             end
             if motion.linewise then

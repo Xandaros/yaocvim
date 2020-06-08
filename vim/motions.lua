@@ -23,44 +23,16 @@ local function registerMotion(motionspec)
     mod.motions[motionspec.key] = setmetatable(motionspec, Motion)
 end
 
-local function validateCursorX(window, cursor)
-    if cursor == nil then
-        return nil
-    end
-    local buffer = window.buffer
-    if cursor[1] < 1 then
-        return {1, cursor[2]}
-    end
-    local length = #buffer.content[cursor[2]]
-    if length == 0 then length = 1 end
-    if cursor[1] > length then
-        return {length, cursor[2]}
-    end
-    return cursor
-end
-
-local function validateCursorY(window, cursor)
-    if cursor == nil then
-        return nil
-    end
-    local buffer = window.buffer
-    if cursor[2] < 1 or cursor[2] > #buffer.content then
-        return nil
-    end
-    return cursor
-end
-
-local function validateCursorXY(window, cursor)
-    return validateCursorX(window, validateCursorY(window, cursor))
-end
-
 registerMotion({
     key = "j",
     linewise = true,
     execute = function(window, count, args)
         local cur_pos = window.cursor
         local new_pos = {cur_pos[1], cur_pos[2] + count}
-        return validateCursorY(window, new_pos) or cur_pos
+        if new_pos[2] > #window.buffer.content then
+            return nil
+        end
+        return new_pos
     end
 })
 
@@ -70,7 +42,10 @@ registerMotion({
     execute = function(window, count, args)
         local cur_pos = window.cursor
         local new_pos = {cur_pos[1], cur_pos[2] - count}
-        return validateCursorY(window, new_pos) or cur_pos
+        if new_pos[2] < 1 then
+            return nil
+        end
+        return new_pos
     end
 })
 
@@ -81,7 +56,10 @@ registerMotion({
         window:fixCursor()
         local cur_pos = window.cursor
         local new_pos = {cur_pos[1] - count, cur_pos[2]}
-        return validateCursorXY(window, new_pos) or cur_pos
+        if new_pos[1] < 1 then
+            return nil
+        end
+        return new_pos
     end
 })
 
@@ -92,7 +70,11 @@ registerMotion({
         window:fixCursor()
         local cur_pos = window.cursor
         local new_pos = {cur_pos[1] + count, cur_pos[2]}
-        return validateCursorXY(window, new_pos) or cur_pos
+        local line = window.buffer.content[new_pos[2]]
+        if new_pos[1] > #line then
+            return cur_pos
+        end
+        return new_pos
     end
 })
 
@@ -310,7 +292,7 @@ registerMotion({
     execute = function(window, count, args)
         local cursor = window.cursor
         if #args == 0 then
-            return nil
+            return false
         end
         local line = window.buffer.content[cursor[2]]
         local x = cursor[1]
