@@ -39,7 +39,6 @@ function mod.set(option, value)
     if not obj then
         return false
     end
-    require("vim/debug").log("Locality:", obj.locality)
     if obj.locality == enums.LOCALITY_GLOBAL then
         obj.value = value
     else
@@ -66,7 +65,6 @@ function mod.get(option)
 end
 
 function mod.isValid(option)
-    require("vim/debug").logTable(mod.options)
     return mod.options[option] and true or false
 end
 
