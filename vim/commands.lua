@@ -196,10 +196,11 @@ registerCommand({
         for k, v in pairs(buffers.buffers) do
             local current = window.buffer == v and "%" or " "
             local active = v.active and "a" or "h"
+            local changed = v:isChanged() and "+" or " "
             local name = "\"" .. v.name .. "\""
             local cursor = window:getBufferCursor(v.id) or {0, 0}
             local line_no = cursor[2]
-            local line = string.format("%3d %s%s   %-30s Line %d", v.id, current, active, name, line_no)
+            local line = string.format("%3d %s%s %s %-30s Line %d", v.id, current, active, changed, name, line_no)
             stts[#stts + 1] = line
         end
         status.setStatus(stts)
