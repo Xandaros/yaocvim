@@ -181,7 +181,9 @@ function Inserter:commit()
 
     local cursor_end = {self.cursor[1], self.cursor[2]}
 
-    self.buffer.undo_tree:newChange(InsertChange.new(self.cursor_start, cursor_end, actions))
+    if #actions > 0 then
+        self.buffer.undo_tree:newChange(InsertChange.new(self.cursor_start, cursor_end, actions))
+    end
 end
 
 function mod.updateActive()
