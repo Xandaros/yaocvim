@@ -1,4 +1,5 @@
 local buffers = require("vim/buffers")
+local colors = require("vim/colors")
 local enums = require("vim/enums")
 local options = require("vim/options")
 local parser = require("vim/parser")
@@ -337,6 +338,77 @@ registerCommand({
                 end
                 options.set(parsed[2], not options.get(parsed[2]))
             end
+        end
+        return true
+    end
+})
+
+registerCommand({
+    aliases = {"highlight", "hi"},
+    execute = function(self, range, exclamation, args)
+        if #args == 0 then
+            status.setStatus("Not implemented yet")
+            return false
+        end
+        if args[1] == "clear" then
+            if args[2] == nil then
+                colors.colorscheme = {}
+            else
+                colors.colorscheme[args[2]] = nil
+            end
+            return true
+        end
+        if args[1] == "default" then
+            status.setStatus("Default not implemented yet")
+            return true
+        end
+
+        local group = args[1]
+        local attribs = {}
+        local valid_arguments = {
+            term = tostring,
+            cterm = tostring,
+            ctermfg = tonumber,
+            ctermbg = tonumber,
+            gui = tostring,
+            guifg = tonumber,
+            guibg = tonumber,
+            guisp = tonumber
+        }
+        for i=2, #args do
+            local split = util.split(args[i], "=")
+            if #split == 1 then
+                status.setStatus("Missing equal sign: " .. args[i])
+                return false
+            elseif #split == 2 then
+                if split[1] == "" then
+                    status.setStatus("Unexpected equal sign: " .. args[i])
+                    return false
+                elseif split[2] == "" then
+                    status.setStatus("Missing argument: " .. args[i])
+                    return false
+                end
+                if valid_arguments[split[1]] then
+                    attribs[split[1]] = valid_arguments[split[1]](split[2])
+                    if attribs[split[1]] == nil then
+                        attribs[split[1]] = colors.color_ids[string.lower(split[2])]
+                    end
+                else
+                    status.setStatus("Illegal argument: " .. args[i])
+                    return false
+                end
+            else
+                status.setStatus("Illegal argument: " .. args[i])
+                return false
+            end
+        end
+
+        if colors.colorscheme[group] == nil then
+            colors.colorscheme[group] = {}
+        end
+
+        for key, value in pairs(attribs) do
+            colors.colorscheme[group][key] = value
         end
         return true
     end

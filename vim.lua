@@ -9,6 +9,7 @@ local component = require("component")
 local gpu = component.gpu
 
 local buffers = require("vim/buffers")
+local colors = require("vim/colors")
 local cursor = require("vim/cursor")
 local events = require("vim/events")
 local modes = require("vim/modes/all")
@@ -21,6 +22,7 @@ local Tab = tabs.Tab
 local screen_dim = {gpu.getResolution()}
 
 local function render()
+    colors.setColor("Normal")
     gpu.fill(0, 0, screen_dim[1] + 1, screen_dim[2] + 1, " ")
 
     local active_tab = Tab.getCurrent()
