@@ -50,50 +50,50 @@ mod.rgb_colors = {
 
 mod.color_names = {
     [0] = "black",
-    [1] = "darkblue",
+    [1] = "darkred",
     [2] = "darkgreen",
-    [3] = "darkcyan",
-    [4] = "darkred",
+    [3] = "darkyellow",
+    [4] = "darkblue",
     [5] = "darkmagenta",
-    [6] = "brown",
-    [7] = "lightgray",
-    [8] = "darkgray",
-    [9] = "blue",
+    [6] = "darkcyan",
+    [7] = "lightgrey",
+    [8] = "darkgrey",
+    [9] = "red",
     [10] = "green",
-    [11] = "cyan",
-    [12] = "red",
+    [11] = "yellow",
+    [12] = "blue",
     [13] = "magenta",
-    [14] = "yellow",
+    [14] = "cyan",
     [15] = "white"
 }
 
 mod.color_ids = {
     black       = 0,
-    darkblue    = 1,
+    darkred     = 1,
     darkgreen   = 2,
-    darkcyan    = 3,
-    darkred     = 4,
+    brown       = 3,
+    darkyellow  = 3,
+    darkblue    = 4,
     darkmagenta = 5,
-    brown       = 6,
-    darkyellow  = 6,
+    darkcyan    = 6,
     lightgray   = 7,
     lightgrey   = 7,
     gray        = 7,
     grey        = 7,
     darkgray    = 8,
     darkgrey    = 8,
-    blue        = 9,
-    lightblue   = 9,
+    red         = 9,
+    lightred    = 9,
     green       = 10,
     lightgreen  = 10,
-    cyan        = 11,
-    lightcyan   = 11,
-    red         = 12,
-    lightred    = 12,
+    yellow      = 11,
+    lightyellow = 11,
+    blue        = 12,
+    lightblue   = 12,
     magenta     = 13,
     lightmagenta= 13,
-    yellow      = 14,
-    lightyellow = 14,
+    cyan        = 14,
+    lightcyan   = 14,
     white       = 15
 }
 
@@ -181,7 +181,8 @@ mod.default_colorscheme = {
     SpecialChar       = {link="Special"},
     Delimiter         = {link="Special"},
     SpecialComment    = {link="Special"},
-    Debug             = {link="Special"}
+    Debug             = {link="Special"},
+    Normal            = {term="reverse", ctermfg=15, ctermbg=9},
 }
 
 mod.colorscheme = {}
@@ -221,6 +222,50 @@ local function getColor(color)
     return getNormal()
 end
 
+local function ansiToPalette(color)
+    local standards = {
+        [0] = colors.black,
+        [1] = colors.red,
+        [2] = colors.green,
+        [3] = colors.brown,
+        [4] = colors.blue,
+        [5] = colors.purple,
+        [6] = colors.cyan,
+        [7] = colors.silver,
+        [8] = colors.gray,
+        [9] = colors.orange,
+        [10] = colors.lime,
+        [11] = colors.yellow,
+        [12] = colors.lightblue,
+        [13] = colors.magenta,
+        [14] = colors.pink,
+        [15] = colors.white
+    }
+    return standards[color]
+end
+
+local function ansiToRgb(color)
+    if color < 16 then
+        local standards = {
+            0x000000, 0x800000, 0x008000, 0x808000, 0x000080, 0x800080, 0x008080, 0xc0c0c0,
+            0x808080, 0xff0000, 0x00ff00, 0xffff00, 0x0000ff, 0xff00ff, 0x00ffff, 0xffffff
+        }
+        return standards[color + 1]
+    elseif color >= 16 and color <= 231 then
+        local idx = color - 16
+        local red = math.floor(idx / 36) * (255 / 5)
+        local green = math.floor((idx % 36) / 6) * (255 / 5)
+        local blue = (idx % 6) * (255 / 5)
+        local rgb = bit32.lshift(red, 16) + bit32.lshift(green, 8) + blue
+        return rgb
+    else
+        local step = 255 / 24
+        local value = (color - 232) * step
+        local rgb = bit32.lshift(value, 16) + bit32.lshift(value, 8) + value
+        return rgb
+    end
+end
+
 function mod.setColor(colorname)
     local color = getColor(colorname)
     local normal = getNormal()
@@ -258,16 +303,14 @@ function mod.setColor(colorname)
         end
     elseif gpu.getDepth() == 4 then
         -- Palette
-        local bg_idx = mod.palette_colors[bg] or 15
-        local fg_idx = mod.palette_colors[fg] or 0
-        require("vim/debug").log("FG: ", fg)
-        require("vim/debug").log("IDX: ", fg_idx)
+        local bg_idx = ansiToPalette(bg) or 15
+        local fg_idx = ansiToPalette(fg) or 0
         gpu.setBackground(bg_idx, true)
         gpu.setForeground(fg_idx, true)
     else
         -- RGB
-        gpu.setBackground(mod.rgb_colors[bg], false)
-        gpu.setForeground(mod.rgb_colors[fg], false)
+        gpu.setBackground(ansiToRgb(bg), false)
+        gpu.setForeground(ansiToRgb(fg), false)
     end
 end
 
