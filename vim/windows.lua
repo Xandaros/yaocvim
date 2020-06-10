@@ -78,6 +78,7 @@ function Window:updateScroll()
 end
 
 function Window:fixCursor(ignoreRight)
+    self.buffer:fix()
     if self.cursor[2] < 1 then
         self.cursor[2] = 1
     end
