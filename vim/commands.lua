@@ -363,6 +363,29 @@ registerCommand({
             return true
         end
 
+        if args[1] == "link" then
+            if #args < 3 then
+                status.setStatus("Not enough arguments")
+                return false
+            elseif #args > 3 then
+                status.setStatus("Too many arguments")
+                return false
+            end
+
+            local group = args[2]
+            if colors.colorscheme[group] == nil then
+                colors.colorscheme[group] = {}
+            end
+            for k, _ in pairs(colors.colorscheme[group]) do
+                if k ~= "link" then
+                    status.setStatus("group has settings, highlight link ignored.")
+                    return false
+                end
+            end
+            colors.colorscheme[group].link = args[3]
+            return true
+        end
+
         local group = args[1]
         local attribs = {}
         local valid_arguments = {
@@ -375,6 +398,10 @@ registerCommand({
             guibg = tonumber,
             guisp = tonumber
         }
+        if #args == 1 then
+            status.setStatus("Not implemented yet.")
+            return false
+        end
         for i=2, #args do
             local split = util.split(args[i], "=")
             if #split == 1 then
@@ -405,6 +432,8 @@ registerCommand({
 
         if colors.colorscheme[group] == nil then
             colors.colorscheme[group] = {}
+        elseif colors.colorscheme[group].link ~= nil then
+            colors.colorscheme[group].link = nil
         end
 
         for key, value in pairs(attribs) do

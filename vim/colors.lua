@@ -197,7 +197,7 @@ local function resolveLinks(color)
             return nil
         end
         visited[color.link] = true
-        color = color.link
+        color = mod.colorscheme[color.link]
     end
     return color
 end
