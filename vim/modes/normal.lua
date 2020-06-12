@@ -18,8 +18,9 @@ end
 function mod.keyPress(event)
     if not event:isModifier() then
         mod.command_buffer = mod.command_buffer .. event:toVimSyntax()
+        local cmd = mod.command_buffer
         mod.interpret_command()
-        if mod.command_buffer ~= ":" and mod.command_buffer ~= "" then
+        if cmd ~= ":" then
             messages.updateVisible()
         end
     end
