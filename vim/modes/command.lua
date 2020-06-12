@@ -57,7 +57,7 @@ function ret.keyPress(event)
     -- Backspace
     if event.char == "\b" then
         if #ret.command_buffer == 0 then
-            messages.echo("")
+            messages.setBottom(nil)
             normalMode()
             return
         end

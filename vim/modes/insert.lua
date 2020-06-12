@@ -12,14 +12,13 @@ local function normalMode()
     local window = Tab.getCurrent():getWindow()
     window.limit_cursor = true
     shared.setMode(require("vim/modes/normal"))
-    messages.echo("")
     if mod.inserter then
         mod.inserter:commit()
     end
     mod.inserter = nil
     window.cursor[1] = window.cursor[1] - 1
     window:fixCursor()
-    messages.setBottom("")
+    messages.setBottom(nil)
 end
 
 function mod.keyPress(event)

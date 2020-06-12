@@ -38,6 +38,10 @@ end
 --- Just changes the bottommost line instead of the entire status
 --- Used for command-line mode
 function mod.setBottom(message, color)
+    if message == nil then
+        mod.bottom = nil
+        return
+    end
     if #mod.visible_lines == 1 then
         mod.visible_lines = {}
     end
