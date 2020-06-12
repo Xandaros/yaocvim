@@ -128,12 +128,6 @@ end
 function ret.render()
     messages.setBottom(":" .. ret.command_buffer)
 
-    local char_under_cursor = ret.command_buffer:sub(ret.cursor, ret.cursor)
-    if char_under_cursor == nil or char_under_cursor == "" then
-        char_under_cursor = " "
-    end
-
-    cursor.char = char_under_cursor
     cursor.cursor = {ret.cursor + 1, util.screen_dim[2]}
 end
 

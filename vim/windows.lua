@@ -140,14 +140,6 @@ function Window:render()
             cursor_x = math.max(#cur_line, 1)
         end
         local cursor_pos = self:textToScreenCoords({cursor_x, self.cursor[2]})
-        local char_under_cursor = cur_line:sub(cursor_x, cursor_x)
-        if char_under_cursor == nil
-            or char_under_cursor == ""
-            or string.byte(char_under_cursor) <= 32
-            or string.byte(char_under_cursor) >= 127 then
-            char_under_cursor = " "
-        end
-        cursor.char = char_under_cursor
         cursor.cursor = cursor_pos
     end
 end

@@ -10,7 +10,8 @@ mod.char = " "
 
 function mod.renderCursor()
     colors.setColor("Cursor")
-    gpu.set(mod.cursor[1], mod.cursor[2], mod.char)
+    local char = gpu.get(mod.cursor[1], mod.cursor[2])
+    gpu.set(mod.cursor[1], mod.cursor[2], char)
     colors.setColor("Normal")
 end
 
