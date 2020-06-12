@@ -7,6 +7,8 @@ mod.KeyboardEvent = {}
 local KeyboardEvent = mod.KeyboardEvent
 KeyboardEvent.__index = KeyboardEvent
 
+mod.simulated_events = {}
+
 function KeyboardEvent.new(charcode, keycode)
     local ret = setmetatable({}, KeyboardEvent)
 
@@ -105,7 +107,14 @@ function KeyboardEvent:toVimSyntax()
     return inner and "<" .. inner .. ">" or ""
 end
 
+function mod.simulate(ev)
+    mod.simulated_events[#mod.simulated_events + 1] = ev
+end
+
 function mod.pull()
+    if #mod.simulated_events > 0 then
+        return table.remove(mod.simulated_events, 1)
+    end
     while true do
         local ev = {event.pull()}
         if ev[1] == "key_down" then

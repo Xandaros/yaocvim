@@ -10,8 +10,8 @@ end
 function mod.logTable(tbl, tabs)
     if component.ocemu == nil then return end
 
-    if tbl == nil then
-        component.ocemu.log("nil")
+    if type(tbl) ~= "table" then
+        component.ocemu.log(tbl)
         return
     end
     if tabs == nil then tabs = 0 end

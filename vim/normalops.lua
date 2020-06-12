@@ -1,7 +1,7 @@
 local motions = require("vim/motions")
 local parser = require("vim/parser")
 local shared = require("vim/modes/shared")
-local status = require("vim/status")
+local messages = require("vim/messages")
 local tabs = require("vim/tabs")
 
 local Motion = motions.Motion
@@ -314,7 +314,7 @@ registerOperator({
             window.cursor = new_cursor
             window:fixCursor()
         else
-            status.setStatus("Already at oldest change")
+            messages.echo("Already at oldest change")
         end
         return true
     end
@@ -328,7 +328,7 @@ registerOperator({
             window.cursor = new_cursor
             window:fixCursor()
         else
-            status.setStatus("Already at newest change")
+            messages.echo("Already at newest change")
         end
         return true
     end

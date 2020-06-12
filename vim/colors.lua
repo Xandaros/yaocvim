@@ -182,12 +182,12 @@ mod.default_colorscheme = {
     Delimiter         = {link="Special"},
     SpecialComment    = {link="Special"},
     Debug             = {link="Special"},
-    Normal            = {term="reverse", ctermfg=15, ctermbg=9},
+    Normal            = {ctermfg=15, ctermbg=0},
 }
 
 mod.colorscheme = {}
 
-local function resolveLinks(color)
+local function resolveLinks(color, col)
     if color == nil then
         return nil
     end
@@ -197,13 +197,23 @@ local function resolveLinks(color)
             return nil
         end
         visited[color.link] = true
-        color = mod.colorscheme[color.link]
+        local new_color = mod.colorscheme[color.link]
+        if new_color == nil then
+            new_color = mod.default_colorscheme[color.link]
+        end
+        if new_color == nil then
+            return nil
+        end
+        color = new_color
     end
     return color
 end
 
 local function getNormal()
     local color = resolveLinks(mod.colorscheme["Normal"])
+    if color == nil then
+        color = resolveLinks(mod.default_colorscheme["Normal"])
+    end
     if color ~= nil then
         return color
     end
@@ -214,10 +224,10 @@ local function getColor(color)
     if mod.colorscheme[color] then
         local resolved = resolveLinks(mod.colorscheme[color])
         if resolved then return resolved end
-        return getNormal()
     end
     if mod.default_colorscheme[color] then
-        return resolveLinks(mod.default_colorscheme[color])
+        local resolved = resolveLinks(mod.default_colorscheme[color], color)
+        if resolved then return resolved end
     end
     return getNormal()
 end
@@ -268,13 +278,14 @@ end
 
 function mod.setColor(colorname)
     local color = getColor(colorname)
+
     local normal = getNormal()
     if color == nil then
         color = normal
     end
 
     local fg = color.ctermfg or normal.ctermfg or 15
-    local bg = color.xtermbg or normal.ctermbg or 0
+    local bg = color.ctermbg or normal.ctermbg or 0
 
     local options = {}
     do

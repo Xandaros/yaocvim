@@ -3,7 +3,7 @@ local colors = require("vim/colors")
 local enums = require("vim/enums")
 local options = require("vim/options")
 local parser = require("vim/parser")
-local status = require("vim/status")
+local messages = require("vim/messages")
 local tabs = require("vim/tabs")
 local util = require("vim/util")
 
@@ -108,16 +108,30 @@ local function registerCommand(cmdspec)
     end
 end
 
+local Invocation = {}
+Invocation.__index = Invocation
+
+function Invocation.new(range, exclamation, args, cmdline)
+    local ret = setmetatable({}, Invocation)
+
+    ret.range = range
+    ret.exclamation = exclamation
+    ret.args = args
+    ret.cmdline = cmdline
+
+    return ret
+end
+
 registerCommand({
     aliases = {"quit", "q"},
     default_range = "",
     range_handler = range_handlers.none,
-    execute = function(self, range, exclamation, args)
-        if not exclamation then
+    execute = function(self, invoc)
+        if not invoc.exclamation then
             local window = Tab.getCurrent():getWindow()
             for _, buf in ipairs(buffers.buffers) do
                 if buf:isChanged() then
-                    status.setStatus("No write since last change in buffer \"" .. buf.name .. "\"")
+                    messages.error("No write since last change in buffer \"" .. buf.name .. "\"")
                     window:setBuffer(buf)
                     return false
                 end
@@ -131,22 +145,22 @@ registerCommand({
     aliases = {"edit", "e"},
     default_range = "",
     range_handler = range_handlers.none,
-    execute = function(self, range, exclamation, args)
-        local filename = args[1]
+    execute = function(self, invoc)
+        local filename = invoc.args[1]
         local window = Tab.getCurrent():getWindow()
-        if not exclamation and not options.get("hidden") and window.buffer:isChanged() then
-            status.setStatus("No write since last change (add ! to override)")
+        if not invoc.exclamation and not options.get("hidden") and window.buffer:isChanged() then
+            messages.error("No write since last change (add ! to override)")
             return false
         end
         local buffer = nil
         if filename == nil then
             buffer = window.buffer
             if buffer.file == nil then
-                status.setStatus("No file name")
+                messages.error("No file name")
                 return false
             end
-            if not exclamation and window.buffer:isChanged() then
-                status.setStatus("No write since last change (add ! to override)")
+            if not invoc.exclamation and window.buffer:isChanged() then
+                messages.error("No write since last change (add ! to override)")
                 return false
             end
             filename = buffer.file
@@ -190,9 +204,10 @@ registerCommand({
     aliases = {"buffers", "ls"},
     default_range = "",
     range_handler = range_handlers.none,
-    execute = function(self, range, exclamation, args)
-        local stts = {}
+    execute = function(self, invoc)
         local window = Tab.getCurrent():getWindow()
+
+        messages.echo(":" .. invoc.cmdline)
 
         for k, v in pairs(buffers.buffers) do
             local current = window.buffer == v and "%" or " "
@@ -202,29 +217,28 @@ registerCommand({
             local cursor = window:getBufferCursor(v.id) or {0, 0}
             local line_no = cursor[2]
             local line = string.format("%3d %s%s %s %-30s Line %d", v.id, current, active, changed, name, line_no)
-            stts[#stts + 1] = line
+            messages.echo(line)
         end
-        status.setStatus(stts)
         return true
     end
 })
 
 registerCommand({
     aliases = {"delete", "d", "de", "del"},
-    execute = function(self, range, exclamation, args)
-        if range[1] > range[2] then
-            status.setStatus("Backwards range given. Not implemented yet")
+    execute = function(self, invoc)
+        if invoc.range[1] > invoc.range[2] then
+            messages.error("Backwards range given. Not implemented yet")
             return false
         end
 
         local window = Tab.getCurrent():getWindow()
         local buffer = window.buffer
-        for i=range[1], range[2] do
-            table.remove(buffer.content, range[1])
+        for i=invoc.range[1], invoc.range[2] do
+            table.remove(buffer.content, invoc.range[1])
         end
         buffer:fix()
-        local line = buffer.content[range[1]]
-        window.cursor[2] = range[1]
+        local line = buffer.content[invoc.range[1]]
+        window.cursor[2] = invoc.range[1]
         window.cursor[1] = util.firstNonBlank(line) or 1
         window:fixCursor()
         return true
@@ -233,13 +247,13 @@ registerCommand({
 
 registerCommand({
     aliases = {"w", "write"},
-    execute = function(self, range, exclamation, args)
+    execute = function(self, invoc)
         local window = Tab.getCurrent():getWindow()
         local buffer = window.buffer
-        local filename = table.concat(args, " ")
+        local filename = table.concat(invoc.args, " ")
         if filename == "" then
             if buffer.file == nil then
-                status.setStatus("No file name")
+                messages.error("No file name")
                 return false
             end
             filename = buffer.file
@@ -253,14 +267,14 @@ registerCommand({
         end
         f:close()
         buffer:markWritten()
-        status.setStatus(string.format("\"%s\" %dL, %dC written", filename, #buffer.content, chars))
+        messages.echo(string.format("\"%s\" %dL, %dC written", filename, #buffer.content, chars))
         return true
     end
 })
 
 registerCommand({
     aliases = {"wq"},
-    execute = function(self, range, exclamation, args)
+    execute = function(self, invoc)
         if ret.execute("w") then
             ret.execute("q")
         end
@@ -271,15 +285,15 @@ registerCommand({
     aliases = {"set", "se"},
     default_range = "",
     range_handler = range_handlers.none,
-    execute = function(self, range, exclamation, args)
-        if #args == 0 then
-            status.setStatus("Not implemented yet")
+    execute = function(self, invoc)
+        if #invoc.args == 0 then
+            messages.error("Not implemented yet")
             return false
         end
-        for _, arg in ipairs(args) do
+        for _, arg in ipairs(invoc.args) do
             local parsed = options.optionparser:parse(arg)
             if not options.isValid(parsed[2]) then
-                status.setStatus("Unknown option: " .. parsed[2])
+                messages.error("Unknown option: " .. parsed[2])
                 return false
             end
             local option = options.getOption(parsed[2])
@@ -288,17 +302,17 @@ registerCommand({
                 if option.typ == enums.TYPE_NUMBER then
                     value = tonumber(value)
                     if value == nil then
-                        status.setStatus("Number required after=: " .. arg)
+                        messages.error("Number required after=: " .. arg)
                         return false
                     end
                 elseif option.typ == enums.TYPE_BOOLEAN then
-                    status.setStatus("Invalid argument: " .. arg)
+                    messages.error("Invalid argument: " .. arg)
                     return false
                 end
                 if parsed[3] == "=" then
                     options.set(parsed[2], value)
                 else
-                    status.setStatus("Not implemented yet")
+                    messages.error("Not implemented yet")
                     return false
                     -- local cur_val = options.get(parsed[2])
                     -- if parsed[3] == "+=" then
@@ -308,7 +322,7 @@ registerCommand({
                 end
             elseif parsed[1] == "setFalse" then
                 if option.typ ~= enums.TYPE_BOOLEAN then
-                    status.setStatus("Invalid argument: " .. arg)
+                    messages.error("Invalid argument: " .. arg)
                     return false
                 end
                 options.set(parsed[2], false)
@@ -316,24 +330,24 @@ registerCommand({
                 if option.typ == enums.TYPE_BOOLEAN then
                     options.set(parsed[2], true)
                 else
-                    status.setStatus(parsed[2] .. "=" .. options.get(parsed[2]))
+                    messages.echo(parsed[2] .. "=" .. options.get(parsed[2]))
                 end
             elseif parsed[1] == "setDefault" then
-                status.setStatus("Not implemented yet")
+                messages.error("Not implemented yet")
                 return false
             elseif parsed[1] == "show" then
                 if option.typ == enums.TYPE_BOOLEAN then
                     if options.get(parsed[2]) then
-                        status.setStatus(option.aliases[1])
+                        messages.echo(option.aliases[1])
                     else
-                        status.setStatus("no" .. option.aliases[1])
+                        messages.echo("no" .. option.aliases[1])
                     end
                 else
-                    status.setStatus(parsed[2] .. "=" .. options.get(parsed[2]))
+                    messages.echo(parsed[2] .. "=" .. options.get(parsed[2]))
                 end
             elseif parsed[1] == "invert" then
                 if option.typ ~= enums.TYPE_BOOLEAN then
-                    status.setStatus("Invalid argument: " .. arg)
+                    messages.error("Invalid argument: " .. arg)
                     return false
                 end
                 options.set(parsed[2], not options.get(parsed[2]))
@@ -345,48 +359,48 @@ registerCommand({
 
 registerCommand({
     aliases = {"highlight", "hi"},
-    execute = function(self, range, exclamation, args)
-        if #args == 0 then
-            status.setStatus("Not implemented yet")
+    execute = function(self, invoc)
+        if #invoc.args == 0 then
+            messages.error("Not implemented yet")
             return false
         end
-        if args[1] == "clear" then
-            if args[2] == nil then
+        if invoc.args[1] == "clear" then
+            if invoc.args[2] == nil then
                 colors.colorscheme = {}
             else
-                colors.colorscheme[args[2]] = nil
+                colors.colorscheme[invoc.args[2]] = nil
             end
             return true
         end
-        if args[1] == "default" then
-            status.setStatus("Default not implemented yet")
+        if invoc.args[1] == "default" then
+            messages.error("Default not implemented yet")
             return true
         end
 
-        if args[1] == "link" then
-            if #args < 3 then
-                status.setStatus("Not enough arguments")
+        if invoc.args[1] == "link" then
+            if #invoc.args < 3 then
+                messages.error("Not enough arguments")
                 return false
-            elseif #args > 3 then
-                status.setStatus("Too many arguments")
+            elseif #invoc.args > 3 then
+                messages.error("Too many arguments")
                 return false
             end
 
-            local group = args[2]
+            local group = invoc.args[2]
             if colors.colorscheme[group] == nil then
                 colors.colorscheme[group] = {}
             end
             for k, _ in pairs(colors.colorscheme[group]) do
                 if k ~= "link" then
-                    status.setStatus("group has settings, highlight link ignored.")
+                    messages.error("group has settings, highlight link ignored.")
                     return false
                 end
             end
-            colors.colorscheme[group].link = args[3]
+            colors.colorscheme[group].link = invoc.args[3]
             return true
         end
 
-        local group = args[1]
+        local group = invoc.args[1]
         local attribs = {}
         local valid_arguments = {
             term = tostring,
@@ -398,21 +412,21 @@ registerCommand({
             guibg = tonumber,
             guisp = tonumber
         }
-        if #args == 1 then
-            status.setStatus("Not implemented yet.")
+        if #invoc.args == 1 then
+            messages.error("Not implemented yet.")
             return false
         end
-        for i=2, #args do
-            local split = util.split(args[i], "=")
+        for i=2, #invoc.args do
+            local split = util.split(invoc.args[i], "=")
             if #split == 1 then
-                status.setStatus("Missing equal sign: " .. args[i])
+                messages.error("Missing equal sign: " .. invoc.args[i])
                 return false
             elseif #split == 2 then
                 if split[1] == "" then
-                    status.setStatus("Unexpected equal sign: " .. args[i])
+                    messages.error("Unexpected equal sign: " .. invoc.args[i])
                     return false
                 elseif split[2] == "" then
-                    status.setStatus("Missing argument: " .. args[i])
+                    messages.error("Missing argument: " .. invoc.args[i])
                     return false
                 end
                 if valid_arguments[split[1]] then
@@ -421,11 +435,11 @@ registerCommand({
                         attribs[split[1]] = colors.color_ids[string.lower(split[2])]
                     end
                 else
-                    status.setStatus("Illegal argument: " .. args[i])
+                    messages.error("Illegal argument: " .. invoc.args[i])
                     return false
                 end
             else
-                status.setStatus("Illegal argument: " .. args[i])
+                messages.error("Illegal argument: " .. invoc.args[i])
                 return false
             end
         end
@@ -461,13 +475,14 @@ function ret.execute(input)
         range = range or {{cmd.default_range, 0}}
         local parsed_range, err = cmd.range_handler(range, window)
         if parsed_range == nil then
-            status.setStatus(err)
+            messages.error(err)
             return
         end
         table.remove(split, 1)
-        return cmd:execute(parsed_range, exclamation, split)
+        local invocation = Invocation.new(parsed_range, exclamation, split, command)
+        return cmd:execute(invocation)
     else
-        status.setStatus("Not an editor command: " .. stripped_command)
+        messages.error("Not an editor command: " .. stripped_command)
     end
 end
 

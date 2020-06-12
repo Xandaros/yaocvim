@@ -3,7 +3,7 @@ local keyboard = require("keyboard")
 local cursor = require("vim/cursor")
 local commands = require("vim/commands")
 local shared = require("vim/modes/shared")
-local status = require("vim/status")
+local messages = require("vim/messages")
 local tabs = require("vim/tabs")
 local util = require("vim/util")
 
@@ -57,7 +57,7 @@ function ret.keyPress(event)
     -- Backspace
     if event.char == "\b" then
         if #ret.command_buffer == 0 then
-            status.setStatus("")
+            messages.echo("")
             normalMode()
             return
         end
@@ -74,6 +74,7 @@ function ret.keyPress(event)
         if command ~= "" then
             commands.execute(command)
         end
+        messages.updateVisible()
     -- ESC(C-[), F1
     elseif event:isEscape() then
         updateHistory()
@@ -125,7 +126,7 @@ function ret.keyPress(event)
 end
 
 function ret.render()
-    status.setBottom(":" .. ret.command_buffer)
+    messages.setBottom(":" .. ret.command_buffer)
 
     local char_under_cursor = ret.command_buffer:sub(ret.cursor, ret.cursor)
     if char_under_cursor == nil or char_under_cursor == "" then
@@ -137,6 +138,7 @@ function ret.render()
 end
 
 function ret.onSwitch(count)
+    messages.should_replace = true
     Tab.getCurrent():getWindow().show_cursor = false
     if count == 1 then
         ret.command_buffer = "."

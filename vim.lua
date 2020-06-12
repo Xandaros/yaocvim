@@ -13,7 +13,7 @@ local colors = require("vim/colors")
 local cursor = require("vim/cursor")
 local events = require("vim/events")
 local modes = require("vim/modes/all")
-local status = require("vim/status")
+local messages = require("vim/messages")
 local tabs = require("vim/tabs")
 
 local Buffer = buffers.Buffer
@@ -31,7 +31,7 @@ local function render()
     if modes.shared.mode.render ~= nil then
         modes.shared.mode.render()
     end
-    status.render()
+    messages.render()
 
     cursor.renderCursor()
 end
@@ -69,6 +69,7 @@ local function main(args)
     while (true) do
         local event = events.pull()
         if getmetatable(event) == events.KeyboardEvent then
+            messages.keyPress(event)
             modes.shared.mode.keyPress(event)
         end
         render()

@@ -1,5 +1,5 @@
 local shared = require("vim/modes/shared")
-local status = require("vim/status")
+local messages = require("vim/messages")
 local tabs = require("vim/tabs")
 
 local Tab = tabs.Tab
@@ -12,13 +12,14 @@ local function normalMode()
     local window = Tab.getCurrent():getWindow()
     window.limit_cursor = true
     shared.setMode(require("vim/modes/normal"))
-    status.setStatus("")
+    messages.echo("")
     if mod.inserter then
         mod.inserter:commit()
     end
     mod.inserter = nil
     window.cursor[1] = window.cursor[1] - 1
     window:fixCursor()
+    messages.setBottom("")
 end
 
 function mod.keyPress(event)
@@ -33,14 +34,14 @@ function mod.keyPress(event)
     window:updateScroll()
 end
 
-function mod.render()
-    status.setStatus("-- INSERT --")
-end
-
 function mod.onSwitch()
     local window = Tab.getCurrent():getWindow()
     window.limit_cursor = false
     mod.inserter = window.buffer:startInsert(window.cursor)
+end
+
+function mod.render()
+    messages.setBottom("-- INSERT --", "ModeMsg")
 end
 
 return mod

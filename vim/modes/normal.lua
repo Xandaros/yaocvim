@@ -1,28 +1,32 @@
+local messages = require("vim/messages")
 local normalops = require("vim/normalops")
 local tabs = require("vim/tabs")
 
 local Tab = tabs.Tab
 
-local ret = {}
+local mod = {}
 
-ret.command_buffer = ""
+mod.command_buffer = ""
 
-function ret.interpret_command()
-    local result = normalops.executeNormal(ret.command_buffer)
+function mod.interpret_command()
+    local result = normalops.executeNormal(mod.command_buffer)
     if result then
-        ret.command_buffer = ""
+        mod.command_buffer = ""
     end
 end
 
-function ret.keyPress(event)
+function mod.keyPress(event)
     if not event:isModifier() then
-        ret.command_buffer = ret.command_buffer .. event:toVimSyntax()
-        ret.interpret_command()
+        mod.command_buffer = mod.command_buffer .. event:toVimSyntax()
+        mod.interpret_command()
+        if mod.command_buffer ~= ":" and mod.command_buffer ~= "" then
+            messages.updateVisible()
+        end
     end
 end
 
-function ret.onSwitch()
+function mod.onSwitch()
     Tab.getCurrent():getWindow().show_cursor = true
 end
 
-return ret
+return mod
