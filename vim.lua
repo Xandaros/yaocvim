@@ -10,6 +10,7 @@ local gpu = component.gpu
 
 local buffers = require("vim/buffers")
 local colors = require("vim/colors")
+local commands = require("vim/commands")
 local cursor = require("vim/cursor")
 local events = require("vim/events")
 local modes = require("vim/modes/all")
@@ -65,6 +66,7 @@ end
 
 local function main(args)
     createInitialTab(args)
+    commands.runFile("/home/.vimrc")
     render()
     while (true) do
         local event = events.pull()
