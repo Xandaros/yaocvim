@@ -95,7 +95,7 @@ local Command = {
     aliases = {},
     default_range = ".",
     range_handler = range_handlers.line,
-    execute = function(self, range, exclamation, args)
+    execute = function(self, invocation)
     end
 }
 
@@ -358,6 +358,19 @@ registerCommand({
 })
 
 registerCommand({
+    aliases = {"source", "so"},
+    default_range = "",
+    range_handler = range_handlers.none,
+    execute = function(self, invoc)
+        if invoc.exclamation then
+            messages.error("Not implemented yet")
+            return true
+        end
+        return ret.runFile(invoc.args[1])
+    end
+})
+
+registerCommand({
     aliases = {"highlight", "hi"},
     execute = function(self, invoc)
         if #invoc.args == 0 then
@@ -456,6 +469,27 @@ registerCommand({
         return true
     end
 })
+
+function ret.runFile(filename)
+    local f = io.open(filename, "r")
+
+    while true do
+        local line = f:read()
+        if line == nil then
+            break
+        end
+        if line ~= "" then
+            local result = ret.execute(line)
+            if result == false then
+                f:close()
+                return false
+            end
+        end
+    end
+
+    f:close()
+    return true
+end
 
 function ret.execute(input)
     local window = Tab.getCurrent():getWindow()
