@@ -366,6 +366,10 @@ registerCommand({
             messages.error("Not implemented yet")
             return true
         end
+        if #invoc.args < 1 then
+            messages.error("Argument required")
+            return false
+        end
         return mod.runFile(invoc.args[1])
     end
 })
@@ -472,6 +476,11 @@ registerCommand({
 
 function mod.runFile(filename)
     local f = io.open(filename, "r")
+
+    if f == nil then
+        messages.error("Can't open file " .. filename)
+        return false
+    end
 
     while true do
         local line = f:read()
