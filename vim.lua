@@ -66,7 +66,7 @@ end
 
 local function main(args)
     createInitialTab(args)
-    commands.runFile("/home/.vimrc")
+    commands.runFile(os.getenv("HOME") .. "/.vimrc")
     render()
     while (true) do
         local event = events.pull()
