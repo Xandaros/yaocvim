@@ -1,10 +1,10 @@
-local ret = {}
+local mod = {}
 
-ret.normal = require("vim/modes/normal")
-ret.command = require("vim/modes/command")
-ret.shared = require("vim/modes/shared")
+mod.normal = require("vim/modes/normal")
+mod.command = require("vim/modes/command")
+mod.shared = require("vim/modes/shared")
 
-ret.shared.mode = ret.normal
-ret.setMode = ret.shared.setMode
+mod.shared.mode = mod.normal
+mod.setMode = mod.shared.setMode
 
-return ret
+return mod

@@ -1,18 +1,18 @@
-local ret = {}
+local mod = {}
 
--- ret.mode set it vim/modes/all
+-- mod.mode set it vim/modes/all
 
-function ret.setMode(mode, count)
+function mod.setMode(mode, count)
     if count == nil then
         count = 1
     end
     if type(mode) == "table" then
-        ret.mode = mode
+        mod.mode = mode
     end
 
-    if ret.mode.onSwitch ~= nil then
-        ret.mode.onSwitch(count)
+    if mod.mode.onSwitch ~= nil then
+        mod.mode.onSwitch(count)
     end
 end
 
-return ret
+return mod

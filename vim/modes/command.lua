@@ -9,66 +9,66 @@ local util = require("vim/util")
 
 local Tab = tabs.Tab
 
-local ret = {}
+local mod = {}
 
-ret.history = {}
-ret.history_loc = 1
-ret.history_search = nil
-ret.command_buffer = ""
-ret.cursor = 1
+mod.history = {}
+mod.history_loc = 1
+mod.history_search = nil
+mod.command_buffer = ""
+mod.cursor = 1
 
 local function normalMode()
-    ret.command_buffer = ""
-    ret.cursor = 1
+    mod.command_buffer = ""
+    mod.cursor = 1
     shared.setMode(require("vim/modes/normal"))
 end
 
 local function updateHistory()
-    if ret.command_buffer == "" then
+    if mod.command_buffer == "" then
         return
     end
-    local selected = ret.history[ret.history_loc]
-    if selected ~= nil and selected == ret.command_buffer then
-        table.remove(ret.history, ret.history_loc)
-        ret.history[#ret.history + 1] = selected
-        ret.history_loc = #ret.history + 1
+    local selected = mod.history[mod.history_loc]
+    if selected ~= nil and selected == mod.command_buffer then
+        table.remove(mod.history, mod.history_loc)
+        mod.history[#mod.history + 1] = selected
+        mod.history_loc = #mod.history + 1
         return
     end
-    ret.history[#ret.history + 1] = ret.command_buffer
-    ret.history_loc = #ret.history + 1
+    mod.history[#mod.history + 1] = mod.command_buffer
+    mod.history_loc = #mod.history + 1
     return
 end
 
 local function findInHistory(prefix, dir)
-    local cur = ret.history_loc
-    while cur >= 1 and cur <= #ret.history + 1 do
+    local cur = mod.history_loc
+    while cur >= 1 and cur <= #mod.history + 1 do
         cur = cur + dir
-        if ret.history[cur] == nil then
+        if mod.history[cur] == nil then
             return nil
         end
-        if util.startswith(ret.history[cur], prefix) then
+        if util.startswith(mod.history[cur], prefix) then
             return cur
         end
     end
     return nil
 end
 
-function ret.keyPress(event)
+function mod.keyPress(event)
     -- Backspace
     if event.char == "\b" then
-        if #ret.command_buffer == 0 then
+        if #mod.command_buffer == 0 then
             messages.setBottom(nil)
             normalMode()
             return
         end
-        if ret.cursor > 1 then
-            ret.history_search = ret.command_buffer
-            ret.command_buffer = ret.command_buffer:sub(1, ret.cursor - 2) .. ret.command_buffer:sub(ret.cursor)
-            ret.cursor = ret.cursor - 1
+        if mod.cursor > 1 then
+            mod.history_search = mod.command_buffer
+            mod.command_buffer = mod.command_buffer:sub(1, mod.cursor - 2) .. mod.command_buffer:sub(mod.cursor)
+            mod.cursor = mod.cursor - 1
         end
     -- Enter
     elseif event:isReturn() then
-        local command = ret.command_buffer
+        local command = mod.command_buffer
         updateHistory()
         normalMode()
         if command ~= "" then
@@ -80,67 +80,67 @@ function ret.keyPress(event)
         updateHistory()
         normalMode()
     elseif event.keycode == keyboard.keys.left then
-        if ret.cursor > 1 then
-            ret.cursor = ret.cursor - 1
+        if mod.cursor > 1 then
+            mod.cursor = mod.cursor - 1
         end
     elseif event.keycode == keyboard.keys.right then
-        if ret.cursor < #ret.command_buffer + 1 then
-            ret.cursor = ret.cursor + 1
+        if mod.cursor < #mod.command_buffer + 1 then
+            mod.cursor = mod.cursor + 1
         end
     elseif event.keycode == keyboard.keys.up then
-        if ret.history_loc > 1 then
-            if ret.history_search == nil then
-                ret.history_search = ret.command_buffer
+        if mod.history_loc > 1 then
+            if mod.history_search == nil then
+                mod.history_search = mod.command_buffer
             end
-            local found_loc = findInHistory(ret.history_search, -1)
+            local found_loc = findInHistory(mod.history_search, -1)
             if found_loc then
-                ret.history_loc = found_loc
-                ret.command_buffer = ret.history[ret.history_loc]
-                ret.cursor = #ret.command_buffer + 1
+                mod.history_loc = found_loc
+                mod.command_buffer = mod.history[mod.history_loc]
+                mod.cursor = #mod.command_buffer + 1
             end
         end
     elseif event.keycode == keyboard.keys.down then
-        if ret.history_loc <= #ret.history then
-            if ret.history_search == nil then
-                ret.history_search = ret.command_buffer
+        if mod.history_loc <= #mod.history then
+            if mod.history_search == nil then
+                mod.history_search = mod.command_buffer
             end
-            local found_loc = findInHistory(ret.history_search, 1)
+            local found_loc = findInHistory(mod.history_search, 1)
             if found_loc then
-                ret.history_loc = found_loc
-                ret.command_buffer = ret.history[ret.history_loc]
-                ret.cursor = #ret.command_buffer + 1
+                mod.history_loc = found_loc
+                mod.command_buffer = mod.history[mod.history_loc]
+                mod.cursor = #mod.command_buffer + 1
             else
-                ret.command_buffer = ""
-                ret.history_loc = #ret.history + 1
+                mod.command_buffer = ""
+                mod.history_loc = #mod.history + 1
             end
-            ret.cursor = #ret.command_buffer + 1
+            mod.cursor = #mod.command_buffer + 1
         end
     -- Printable char
     elseif event:isPrintable() then
-        local before = ret.command_buffer:sub(1, ret.cursor - 1)
-        local after = ret.command_buffer:sub(ret.cursor)
-        ret.command_buffer = before .. event.char .. after
-        ret.cursor = ret.cursor + 1
-        ret.history_search = ret.command_buffer
+        local before = mod.command_buffer:sub(1, mod.cursor - 1)
+        local after = mod.command_buffer:sub(mod.cursor)
+        mod.command_buffer = before .. event.char .. after
+        mod.cursor = mod.cursor + 1
+        mod.history_search = mod.command_buffer
     end
 end
 
-function ret.render()
-    messages.setBottom(":" .. ret.command_buffer)
+function mod.render()
+    messages.setBottom(":" .. mod.command_buffer)
 
-    cursor.cursor = {ret.cursor + 1, util.screen_dim[2]}
+    cursor.cursor = {mod.cursor + 1, util.screen_dim[2]}
 end
 
-function ret.onSwitch(count)
+function mod.onSwitch(count)
     messages.should_replace = true
     Tab.getCurrent():getWindow().show_cursor = false
     if count == 1 then
-        ret.command_buffer = "."
+        mod.command_buffer = "."
     elseif count > 1 then
-        ret.command_buffer = ".,.+" .. tostring(count - 1)
+        mod.command_buffer = ".,.+" .. tostring(count - 1)
     end
-    ret.cursor = #ret.command_buffer + 1
-    ret.history_search = ""
+    mod.cursor = #mod.command_buffer + 1
+    mod.history_search = ""
 end
 
-return ret
+return mod

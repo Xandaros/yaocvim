@@ -11,10 +11,10 @@ local Buffer = buffers.Buffer
 local Parser = parser.Parser
 local Tab = tabs.Tab
 
-local ret = {}
+local mod = {}
 
-ret.commands = {}
-local commands = ret.commands
+mod.commands = {}
+local commands = mod.commands
 
 local function range_parser()
     local part_parser = Parser.choice(util.map({
@@ -275,8 +275,8 @@ registerCommand({
 registerCommand({
     aliases = {"wq"},
     execute = function(self, invoc)
-        if ret.execute("w") then
-            ret.execute("q")
+        if mod.execute("w") then
+            mod.execute("q")
         end
     end
 })
@@ -366,7 +366,7 @@ registerCommand({
             messages.error("Not implemented yet")
             return true
         end
-        return ret.runFile(invoc.args[1])
+        return mod.runFile(invoc.args[1])
     end
 })
 
@@ -470,7 +470,7 @@ registerCommand({
     end
 })
 
-function ret.runFile(filename)
+function mod.runFile(filename)
     local f = io.open(filename, "r")
 
     while true do
@@ -479,7 +479,7 @@ function ret.runFile(filename)
             break
         end
         if line ~= "" then
-            local result = ret.execute(line)
+            local result = mod.execute(line)
             if result == false then
                 f:close()
                 return false
@@ -491,7 +491,7 @@ function ret.runFile(filename)
     return true
 end
 
-function ret.execute(input)
+function mod.execute(input)
     local window = Tab.getCurrent():getWindow()
     local split = {}
     for x in input:gmatch("[^ ]+") do
@@ -520,4 +520,4 @@ function ret.execute(input)
     end
 end
 
-return ret
+return mod
