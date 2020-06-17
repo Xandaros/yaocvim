@@ -1,6 +1,7 @@
 local component = require("component")
 local gpu = component.gpu
 
+local colors = require("vim/colors")
 local cursor = require("vim/cursor")
 
 local mod = {}
@@ -39,12 +40,6 @@ function Window.new(buffer, x, y, w, h)
     mod.next_window_id = mod.next_window_id + 1
 
     return ret
-end
-
---- Prepare a string for rendering
-local function prepareString(s)
-    local result, _ = s:gsub("\t", "    ")
-    return result
 end
 
 --- Turn a location in the text to a coordinate on screen
@@ -122,12 +117,26 @@ function Window:render()
         buffer.content[1] = ""
     end
 
+    buffer:colorize()
+
     local cur_y = self.y
     for idx=self.screen[2], self.screen[2] + self.h do
-        local line = buffer.content[idx]
+        local line = buffer.colorized_content[idx]
         if line ~= nil then
-            local visible = line:sub(self.screen[1], self.screen[1] + self.w)
-            gpu.set(self.x, cur_y, prepareString(visible))
+            local x = 1
+            local x_on_screen = self.x
+            for _, segment in ipairs(line) do
+                local vis_start = self.screen[1] - x
+                if vis_start < 1 then
+                    vis_start = 1
+                end
+                local visible = segment[2]:sub(vis_start, vis_start + self.w)
+                colors.setColor(segment[1])
+                gpu.set(x_on_screen, cur_y, visible)
+                colors.setColor("Normal")
+                x = x + #visible
+                x_on_screen = x_on_screen + #visible
+            end
         end
         cur_y = cur_y + 1
     end

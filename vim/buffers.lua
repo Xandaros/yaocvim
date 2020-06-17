@@ -1,3 +1,4 @@
+local syntax = require("vim/syntax")
 local tabs = require("vim/tabs")
 local undo = require("vim/undo")
 
@@ -23,6 +24,7 @@ Inserter.__index = Inserter
 function Buffer.new(content)
     local ret = setmetatable({}, Buffer)
     ret.content = content or {}
+    ret.colorized_content = {}
     ret.id = mod.next_buffer_id
     ret.name = "[No Name]"
     ret.file = nil
@@ -34,6 +36,16 @@ function Buffer.new(content)
     mod.buffers[ret.id] = ret
     mod.next_buffer_id = mod.next_buffer_id + 1
     return ret
+end
+
+function Buffer:colorize()
+    self.colorized_content = {}
+    local state = {}
+    for i, line in ipairs(self.content) do
+        local segments
+        segments, state = syntax.parseLine(line, state)
+        self.colorized_content[i] = segments
+    end
 end
 
 function Buffer:fix()

@@ -4,6 +4,7 @@ local enums = require("vim/enums")
 local options = require("vim/options")
 local parser = require("vim/parser")
 local messages = require("vim/messages")
+local syntax = require("vim/syntax")
 local tabs = require("vim/tabs")
 local util = require("vim/util")
 
@@ -474,11 +475,67 @@ registerCommand({
     end
 })
 
-function mod.runFile(filename)
+registerCommand({
+    aliases = {"syntax", "sy", "syn"},
+    execute = function(self, invoc)
+        if #invoc.args < 1 then
+            messages.error("Not implemented yet")
+            return false
+        end
+        if invoc.args[1] ~= "keyword" then
+            messages.error("Not implemented yet")
+            return true
+        end
+
+        local valid_options = {
+            contains = true,
+            oneline = true,
+            fold = true,
+            display = true,
+            extend = true,
+            concealends = true,
+            conceal = true,
+            cchar = true,
+            contained = true,
+            containedin = true,
+            nextgroup = true,
+            transparent = true,
+            skipwhite = true,
+            skipnl = true,
+            skipempty = true
+        }
+
+        if invoc.args[1] == "keyword" then
+            if #invoc.args < 3 then
+                messages.error("Invalid argument")
+                return false
+            end
+
+            local opts = {}
+            local keywords = {}
+            local group = invoc.args[2]
+            for i=3, #invoc.args do
+                local arg = invoc.args[i]
+                if valid_options[arg] then
+                    opts[arg] = true
+                else
+                    keywords[#keywords + 1] = arg
+                end
+            end
+            for _, keyword in ipairs(keywords) do
+                syntax.addKeyword(group, keyword, opts)
+            end
+        end
+    end
+})
+
+function mod.runFile(filename, ignoreErrors)
     local f = io.open(filename, "r")
 
     if f == nil then
-        messages.error("Can't open file " .. filename)
+        if not ignoreErrors then
+            messages.error("Can't open file " .. filename)
+        end
         return false
     end
 

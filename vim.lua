@@ -66,7 +66,9 @@ end
 
 local function main(args)
     createInitialTab(args)
-    commands.runFile(os.getenv("HOME") .. "/.vimrc")
+    commands.runFile("/usr/share/vim/syntax/lua.vim", true)
+    commands.runFile("/home/syntax/lua.vim", true)
+    commands.runFile(os.getenv("HOME") .. "/.vimrc", true)
     render()
     while (true) do
         local event = events.pull()

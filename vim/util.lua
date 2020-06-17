@@ -77,4 +77,19 @@ function mod.startswith(s, prefix)
     return s:sub(1, #prefix) == prefix
 end
 
+function mod.endswith(s, suffix)
+    return s:sub(#s - #suffix + 1, #s) == suffix
+end
+
+function mod.concatTbl(tbl1, tbl2)
+    local ret = {}
+    for _, x in ipairs(tbl1) do
+        ret[#ret + 1] = x
+    end
+    for _, x in ipairs(tbl2) do
+        ret[#ret + 1] = x
+    end
+    return ret
+end
+
 return mod
