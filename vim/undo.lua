@@ -181,7 +181,9 @@ function InsertChange:redo(buffer)
                 inserter:addChar(action:sub(j, j))
             end
         elseif action[1] == "backspace" then
-            inserter:backspace()
+            for j=1, #action[2] do
+                inserter:backspace()
+            end
         end
     end
     return cursor

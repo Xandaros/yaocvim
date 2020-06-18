@@ -208,7 +208,7 @@ function Inserter:commit()
         elseif type(latest) == "string" and type(action) == "string" then
             actions[actions_len] = latest .. action
         elseif latest[1] == "backspace" and action[1] == "backspace" then
-            latest[2] = latest[2] .. action[2]
+            latest[2] = action[2] .. latest[2]
         else
             actions[actions_len + 1] = action
         end
