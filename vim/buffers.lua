@@ -35,13 +35,23 @@ function Buffer.new(content)
 
     mod.buffers[ret.id] = ret
     mod.next_buffer_id = mod.next_buffer_id + 1
+
+    ret:colorize()
     return ret
 end
 
-function Buffer:colorize()
-    self.colorized_content = {}
+function Buffer:colorize(first, last)
+    if not first then
+        self.colorized_content = {}
+        first = 1
+        last = #self.content
+    end
+    if not last then
+        last = first
+    end
     local state = {}
-    for i, line in ipairs(self.content) do
+    for i = first, last do
+        local line = self.content[i]
         local segments
         segments, state = syntax.parseLine(line, state)
         self.colorized_content[i] = segments
@@ -63,6 +73,7 @@ function Buffer:deleteLines(start, fin)
     self.undo_tree:newChange()
     for line_no=fin, start, -1 do
         local line = table.remove(self.content, start)
+        table.remove(self.colorized_content, start)
         self.undo_tree:joinChange(DeleteLineChange.new(start, line))
     end
 end
@@ -75,17 +86,23 @@ function Buffer:deleteNormal(start, fin)
 
     for _=start[2] + 1, fin[2] do
         deleted[#deleted + 1] = table.remove(self.content, start[2] + 1)
+        table.remove(self.colorized_content, start[2] + 1)
     end
 
     deleted[#deleted + 1] = deleted_end
 
     self.content[start[2]] = before .. after
     self.undo_tree:newChange(DeleteNormalChange.new(start, fin, deleted))
+
+    self:colorize(start[2])
 end
 
 function Buffer:addLine(line_no, text)
     table.insert(self.content, line_no, text)
+    table.insert(self.colorized_content, line_no, {})
     self.undo_tree:newChange(AddLineChange.new(line_no, text))
+
+    self:colorize(line_no)
 end
 
 function Buffer:undo()
@@ -124,6 +141,7 @@ function Inserter:addChar(char)
     if char == "\n" or char == "\r" then
         buffer.content[cursor[2]] = before
         table.insert(buffer.content, cursor[2] + 1, after)
+        table.insert(buffer.colorized_content, cursor[2] + 1, {})
         cursor[2] = cursor[2] + 1
         cursor[1] = 1
     else
@@ -131,6 +149,8 @@ function Inserter:addChar(char)
         buffer.content[cursor[2]] = before .. char .. after
     end
     self.actions[#self.actions + 1] = char
+
+    buffer:colorize(cursor[2])
 end
 
 function Inserter:backspace()
@@ -161,8 +181,11 @@ function Inserter:backspace()
         line = line .. next_line
         buffer.content[cursor[2]] = line
         table.remove(buffer.content, cursor[2] + 1)
+        table.remove(buffer.colorized_content, cursor[2] + 1)
     end
     self.actions[#self.actions + 1] = {"backspace", deletedChar}
+
+    buffer:colorize(cursor[2])
 end
 
 function Inserter:delete()

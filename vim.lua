@@ -69,6 +69,7 @@ local function main(args)
     commands.runFile("/usr/share/vim/syntax/lua.vim", true)
     commands.runFile("/home/syntax/lua.vim", true)
     commands.runFile(os.getenv("HOME") .. "/.vimrc", true)
+    Tab.getCurrent():getWindow().buffer:colorize()
     render()
     while (true) do
         local event = events.pull()

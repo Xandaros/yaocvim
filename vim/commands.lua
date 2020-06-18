@@ -197,6 +197,8 @@ registerCommand({
         buffer.file = filename
         buffer.name = filename
         window:setBuffer(buffer)
+
+        buffer:colorize()
         return true
     end
 })

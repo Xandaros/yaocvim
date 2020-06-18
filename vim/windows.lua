@@ -117,8 +117,6 @@ function Window:render()
         buffer.content[1] = ""
     end
 
-    buffer:colorize()
-
     local cur_y = self.y
     for idx=self.screen[2], self.screen[2] + self.h do
         local line = buffer.colorized_content[idx]

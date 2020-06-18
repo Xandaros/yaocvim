@@ -136,11 +136,14 @@ end
 
 function DeleteLineChange:undo(buffer)
     table.insert(buffer.content, self.line_no, self.line)
+    table.insert(buffer.colorized_content, self.line_no, {})
+    buffer:colorize(self.line_no)
     return {1, self.line_no}
 end
 
 function DeleteLineChange:redo(buffer)
     table.remove(buffer.content, self.line_no)
+    table.remove(buffer.colorized_content, self.line_no)
     return {1, self.line_no}
 end
 
@@ -203,9 +206,12 @@ function DeleteNormalChange:undo(buffer)
 
     for i=2, #self.text - 1 do
         table.insert(buffer.content, cursor[2] + i - 1, self.text[i])
+        table.insert(buffer.colorized_content, cursor[2] + i - 1, {})
+        buffer:colorize(cursor[2] + i - 1)
     end
 
     buffer.content[cursor[2] + #self.text - 2] = self.text[#self.text] .. after
+    buffer:colorize(cursor[2] + #self.text - 2)
 end
 
 function DeleteNormalChange:redo(buffer)
@@ -227,11 +233,14 @@ end
 
 function AddLineChange:undo(buffer)
     table.remove(buffer.content, self.line_no)
+    table.remove(buffer.colorized_content, self.line_no)
     return {1, self.line_no}
 end
 
 function AddLineChange:redo(buffer)
     table.insert(buffer.content, self.line_no, self.line)
+    table.insert(buffer.colorized_content, self.line_no, {})
+    buffer:colorize(self.line_no)
     return {1, self.line_no}
 end
 
