@@ -65,12 +65,19 @@ local function createInitialTab(args)
 end
 
 local function main(args)
+    if gpu.bitblt then
+        local gpu_buffer = gpu.allocateBuffer()
+        gpu.setActiveBuffer(gpu_buffer)
+    end
     createInitialTab(args)
     commands.runFile("/usr/share/vim/syntax/lua.vim", true)
     commands.runFile("/home/syntax/lua.vim", true)
     commands.runFile(os.getenv("HOME") .. "/.vimrc", true)
     Tab.getCurrent():getWindow().buffer:colorize()
     render()
+    if gpu.bitblt then
+        gpu.bitblt()
+    end
     while (true) do
         local event = events.pull()
         if getmetatable(event) == events.KeyboardEvent then
@@ -78,6 +85,15 @@ local function main(args)
             modes.shared.mode.keyPress(event)
         end
         render()
+        if gpu.bitblt then
+            gpu.bitblt()
+        end
+        if commands.exiting then
+            break
+        end
+    end
+    if gpu.bitblt then
+        gpu.freeBuffer()
     end
 end
 

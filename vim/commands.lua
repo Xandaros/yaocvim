@@ -17,6 +17,8 @@ local mod = {}
 mod.commands = {}
 local commands = mod.commands
 
+mod.exiting = false
+
 local function range_parser()
     local part_parser = Parser.choice(util.map({
         "[%d.$%%]",
@@ -138,7 +140,7 @@ registerCommand({
                 end
             end
         end
-        os.exit()
+        mod.exiting = true
     end
 })
 
