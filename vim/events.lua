@@ -51,7 +51,7 @@ function KeyboardEvent:isReturn()
 end
 
 function KeyboardEvent:isEscape()
-    return self.charcode == 27 or event.charcode == 0 and event.keycode == keyboard.keys.f1
+    return self.charcode == 27 or self.charcode == 0 and self.keycode == keyboard.keys.f1
 end
 
 function KeyboardEvent:vimSyntaxInner()
