@@ -100,4 +100,9 @@ local function main(args)
     end
 end
 
-main({...})
+xpcall(main, function(err)
+    gpu.freeBuffer()
+    require("term").clear()
+    print(err)
+    print(debug.traceback())
+end, {...})
