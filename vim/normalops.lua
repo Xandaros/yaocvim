@@ -348,6 +348,7 @@ registerOperator({
     key = "<C-l>",
     execute = function(window, count, motion_count, motion, motion_args)
         window.buffer:colorize()
+        Tab.getCurrent().redraw = true
     end
 })
 

@@ -25,6 +25,8 @@ function Tab.new(buffer, x, y, w, h)
     ret.w = w
     ret.h = h
 
+    ret.redraw = false
+
     ret.options = {}
     return ret
 end
@@ -35,8 +37,9 @@ end
 
 function Tab:render()
     for k, v in ipairs(self.windows) do
-        v:render()
+        v:render(self.redraw)
     end
+    self.redraw = false
 end
 
 function Tab:getWindow()

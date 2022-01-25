@@ -35,6 +35,9 @@ function Window.new(buffer, x, y, w, h)
 
     ret.options = {}
 
+    ret.previous_content = {}
+    ret.previous_cursor = {1,1}
+
     ret.id = mod.next_window_id
     mod.windows[ret.id] = ret
     mod.next_window_id = mod.next_window_id + 1
@@ -111,7 +114,27 @@ function Window:getBufferCursor(buf_id)
     end
 end
 
-function Window:render()
+local function lineEquals(line1, line2)
+    if line1 == nil or line2 == nil then
+        return line1 == line2
+    end
+    if #line1 ~= #line2 then
+        return false
+    end
+    for i=1, #line1 do
+        local seg1 = line1[i]
+        local seg2 = line2[i]
+        if seg1 == nil and seg2 ~= nil or seg2 == nil and seg1 ~= nil then
+            return false
+        end
+        if seg1[1] ~= seg2[1] or seg1[2] ~= seg2[2] then
+            return false
+        end
+    end
+    return true
+end
+
+function Window:render(redraw)
     local buffer = self.buffer
     if #buffer.content == 0 then
         buffer.content[1] = ""
@@ -120,20 +143,24 @@ function Window:render()
     local cur_y = self.y
     for idx=self.screen[2], self.screen[2] + self.h do
         local line = buffer.colorized_content[idx]
-        if line ~= nil then
-            local x = 1
-            local x_on_screen = self.x
-            for _, segment in ipairs(line) do
-                local vis_start = self.screen[1] - x
-                if vis_start < 1 then
-                    vis_start = 1
+        if redraw or not lineEquals(line, self.previous_content[cur_y]) or cur_y == self.previous_cursor[2] then
+            self.previous_content[cur_y] = line
+            gpu.fill(self.x, cur_y, self.w, 1, " ")
+            if line ~= nil then
+                local x = 1
+                local x_on_screen = self.x
+                for _, segment in ipairs(line) do
+                    local vis_start = self.screen[1] - x
+                    if vis_start < 1 then
+                        vis_start = 1
+                    end
+                    local visible = segment[2]:sub(vis_start, vis_start + self.w)
+                    colors.setColor(segment[1])
+                    gpu.set(x_on_screen, cur_y, visible)
+                    colors.setColor("Normal")
+                    x = x + #visible
+                    x_on_screen = x_on_screen + #visible
                 end
-                local visible = segment[2]:sub(vis_start, vis_start + self.w)
-                colors.setColor(segment[1])
-                gpu.set(x_on_screen, cur_y, visible)
-                colors.setColor("Normal")
-                x = x + #visible
-                x_on_screen = x_on_screen + #visible
             end
         end
         cur_y = cur_y + 1
@@ -148,6 +175,7 @@ function Window:render()
         end
         local cursor_pos = self:textToScreenCoords({cursor_x, self.cursor[2]})
         cursor.cursor = cursor_pos
+        self.previous_cursor = cursor_pos
     end
 end
 

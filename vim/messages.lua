@@ -2,6 +2,7 @@ local component = require("component")
 local gpu = component.gpu
 
 local colors = require("vim/colors")
+local tabs = require("vim/tabs")
 
 local mod = {}
 
@@ -71,6 +72,7 @@ function mod.keyPress(event)
     if event:isReturn() then
         mod.visible_lines = {}
         mod.prompt_shown = false
+        tabs.Tab.getCurrent().redraw = true
         return
     end
     if event:isPrintable() then
@@ -83,9 +85,7 @@ end
 
 function mod.render()
     local y = screen_dim[2] - #mod.visible_lines
-    if #mod.visible_lines > 1 then
-        gpu.fill(1, y, screen_dim[1], screen_dim[2] + 1, " ")
-    end
+    gpu.fill(1, y, screen_dim[1], screen_dim[2] + 1, " ")
     if #mod.visible_lines > 1 then
         y = y - 1
     end

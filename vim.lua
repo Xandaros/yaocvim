@@ -24,7 +24,6 @@ local screen_dim = {gpu.getResolution()}
 
 local function render()
     colors.setColor("Normal")
-    gpu.fill(0, 0, screen_dim[1] + 1, screen_dim[2] + 1, " ")
 
     local active_tab = Tab.getCurrent()
     active_tab:render()
