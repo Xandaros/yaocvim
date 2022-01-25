@@ -31,7 +31,7 @@ local function inPrintableRange(charcode)
 end
 
 function KeyboardEvent:isPrintable()
-    if self.ctrl or self.alt then
+    if self.ctrl then
         return false
     end
     return inPrintableRange(self.charcode)
@@ -67,9 +67,9 @@ function KeyboardEvent:vimSyntaxInner()
     if self.shift then
         prefix = "S-"
     end
-    if self.alt then
-        prefix = "M-" .. prefix
-    end
+    -- if self.alt then
+    --     prefix = "M-" .. prefix
+    -- end
     if self:isEscape() then
         return prefix .. "ESC"
     end
@@ -84,9 +84,9 @@ function KeyboardEvent:vimSyntaxInner()
     if self.ctrl then
         prefix = "C-" .. prefix
     end
-    if self.alt then
-        prefix = "M-" .. prefix
-    end
+    -- if self.alt then
+    --     prefix = "M-" .. prefix
+    -- end
 
     local char = self.char
     if not inPrintableRange(self.charcode) then
