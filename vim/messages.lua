@@ -19,9 +19,9 @@ function mod.addMessage(message, persistent, color)
         color = "Normal"
     end
     if persistent then
-        mod.message_history[#mod.message_history + 1] = message
+        mod.message_history[#mod.message_history + 1] = tostring(message)
     end
-    mod.buffered_lines[#mod.buffered_lines + 1] = {color, message}
+    mod.buffered_lines[#mod.buffered_lines + 1] = {color, tostring(message)}
 end
 
 function mod.echo(message, color)
@@ -46,7 +46,7 @@ function mod.setBottom(message, color)
     if #mod.visible_lines == 1 then
         mod.visible_lines = {}
     end
-    mod.bottom = {color or "Normal", message}
+    mod.bottom = {color or "Normal", tostring(message)}
 end
 
 function mod.updateVisible()
