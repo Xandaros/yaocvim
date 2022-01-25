@@ -94,6 +94,10 @@ local function main(args)
     if gpu.bitblt then
         gpu.freeBuffer()
     end
+    do
+        local term = require("term")
+        term.clear()
+    end
 end
 
 main({...})
