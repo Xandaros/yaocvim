@@ -3,6 +3,7 @@ local parser = require("vim/parser")
 local shared = require("vim/modes/shared")
 local messages = require("vim/messages")
 local tabs = require("vim/tabs")
+local util = require("vim/util")
 
 local Motion = motions.Motion
 local Parser = parser.Parser
@@ -169,7 +170,9 @@ registerOperator({
     key = "I",
     execute = function(window, count, motion_count, motion, motion_args)
         window:fixCursor()
-        window.cursor[1] = 1
+        local cursor = window.cursor
+        local line = window.buffer.content[cursor[2]]
+        window.cursor[1] = util.firstNonBlank(line)
         shared.setMode(require("vim/modes/insert"), count)
         return true
     end,

@@ -68,10 +68,7 @@ local function main(args)
         local gpu_buffer = gpu.allocateBuffer()
         gpu.setActiveBuffer(gpu_buffer)
     end
-    do
-        local width, height = gpu.getResolution()
-        gpu.fill(1, 1, width, height, " ")
-    end
+    gpu.fill(1, 1, screen_dim[1], screen_dim[2], " ")
     createInitialTab(args)
     commands.runFile("/usr/share/vim/syntax/lua.vim", true)
     commands.runFile("/home/syntax/lua.vim", true)
