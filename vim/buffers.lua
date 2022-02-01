@@ -142,6 +142,7 @@ function Inserter:addChar(char)
         buffer.content[cursor[2]] = before
         table.insert(buffer.content, cursor[2] + 1, after)
         table.insert(buffer.colorized_content, cursor[2] + 1, {})
+        buffer:colorize(cursor[2])
         cursor[2] = cursor[2] + 1
         cursor[1] = 1
     else
