@@ -8,6 +8,7 @@ mod.Motion = {
     exclusive = false,
     jump = false,
     default_count = 1,
+    -- execute reurns a new position on success, nil on failure, and false if awaiting arguments
     execute = function(window, count, args)
     end,
     __tostring = function(self)
