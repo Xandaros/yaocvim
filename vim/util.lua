@@ -92,4 +92,12 @@ function mod.concatTbl(tbl1, tbl2)
     return ret
 end
 
+function mod.copyTbl(tbl)
+    local ret = {}
+    for k, v in pairs(tbl) do
+        ret[k] = v
+    end
+    return ret
+end
+
 return mod

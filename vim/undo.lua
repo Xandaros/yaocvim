@@ -1,3 +1,5 @@
+local util = require("vim/util")
+
 local mod = {}
 
 mod.UndoTree = {}
@@ -110,7 +112,7 @@ function UndoBlock:undo(buffer)
     for i=#self.changes, 1, -1 do
         last_cursor = self.changes[i]:undo(buffer)
     end
-    return last_cursor
+    return util.copyTbl(last_cursor)
 end
 
 function UndoBlock:redo(buffer)
@@ -118,7 +120,7 @@ function UndoBlock:redo(buffer)
     for i=1, #self.changes do
         last_cursor = self.changes[i]:redo(buffer)
     end
-    return last_cursor
+    return util.copyTbl(last_cursor)
 end
 
 function UndoBlock:newChange(change)
@@ -149,9 +151,9 @@ end
 
 function InsertChange.new(cursor_start, cursor_end, actions)
     local ret = setmetatable({}, InsertChange)
-    ret.cursor_start = cursor_start
-    ret.cursor_end = cursor_end
-    ret.actions = actions
+    ret.cursor_start = util.copyTbl(cursor_start)
+    ret.cursor_end = util.copyTbl(cursor_end)
+    ret.actions = util.copyTbl(actions)
     return ret
 end
 
@@ -192,8 +194,8 @@ end
 function DeleteNormalChange.new(start, fin, text)
     local ret = setmetatable({}, DeleteNormalChange)
 
-    ret.start = start
-    ret.fin = fin
+    ret.start = util.copyTbl(start)
+    ret.fin = util.copyTbl(fin)
     ret.text = text
 
     return ret
