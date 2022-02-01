@@ -132,6 +132,15 @@ registerMotion({
     end
 })
 
+local function findNextWORD(str, pos)
+    if pos == nil then return nil end
+    local after_cursor = str:sub(pos, #str)
+
+    local idx = nil
+    local i, _ = string.find(after_cursor, "%s[^%s]")
+    return i and pos + i or nil
+end
+
 local function findNextWord(str, pos)
     if pos == nil then return nil end
     local after_cursor = str:sub(pos, #str)
@@ -155,6 +164,24 @@ local function findNextWord(str, pos)
     end
     local new_x = pos + idx - 1
     return new_x
+end
+
+local function findEndOfWORD(str, pos)
+    if pos == nil then return nil end
+    local after_cursor = str:sub(pos + 1) .. " "
+
+    local idx = nil
+    local i, _ = string.find(after_cursor, "[^%s]%s")
+    if i ~= nil then
+        if idx == nil or i < idx then
+            idx = i
+        end
+    end
+    if idx == nil then
+        return nil
+    end
+
+    return pos + idx
 end
 
 local function findEndOfWord(str, pos)
@@ -209,6 +236,35 @@ registerMotion({
     end
 })
 
+
+registerMotion({
+    key = "W",
+    exclusive = true,
+    execute = function(window, count, args)
+        window:fixCursor()
+        local cursor = window.cursor
+        local cur_x = cursor[1]
+        local cur_y = cursor[2]
+
+        local line = window.buffer.content[cur_y]
+        for i=1, count do
+            local next_word = findNextWORD(line, cur_x)
+            if next_word == nil then
+                cur_y = cur_y + 1
+                local next_line = window.buffer.content[cur_y]
+                if next_line == nil then
+                    return {util.firstNonBlank(line) or 1, cur_y - 1}
+                end
+                line = next_line
+                cur_x = util.firstNonBlank(line) or 1
+            else
+                cur_x = next_word
+            end
+        end
+        return {cur_x, cur_y}
+    end
+})
+
 registerMotion({
     key = "e",
     execute = function(window, count, args)
@@ -238,6 +294,41 @@ registerMotion({
                 y = i
             end
             ::continue::
+        end
+
+
+        return {x, y}
+    end
+})
+
+registerMotion({
+    key = "E",
+    execute = function(window, count, args)
+        window:fixCursor()
+        local cursor = window.cursor
+        local x = cursor[1]
+        local y = cursor[2]
+
+        for j=1, count do
+            for i=y, #window.buffer.content do
+                local cur_line = window.buffer.content[i]
+                if cur_line == nil then
+                    local line = #window.buffer.content[i - 1]
+                    if #line == 0 then
+                        return {1, i - 1}
+                    else
+                        return {#line, i - 1}
+                    end
+                end
+                local word_end = findEndOfWORD(cur_line, x)
+                if word_end ~= nil then
+                    x = word_end
+                    y = i
+                    break
+                end
+                x = 1
+                y = i
+            end
         end
 
 
@@ -289,6 +380,49 @@ registerMotion({
 })
 
 registerMotion({
+    key = "B",
+    exclusive = true,
+    execute = function(window, count, args)
+        window:fixCursor()
+        local cursor = window.cursor
+
+        local x = cursor[1]
+        local y = cursor[2]
+
+        for i=1, count do
+            local cur_line = window.buffer.content[y]
+            local reversed = cur_line:reverse()
+            local wordEnd_rev = findEndOfWORD(reversed, #cur_line - x + 1)
+            if wordEnd_rev ~= nil then
+                x = #cur_line - wordEnd_rev + 1
+                goto continue
+            end
+
+            -- No previous word found on this line
+            if y == 1 then
+                -- Already on first line, just go to 1,1
+                return {1, 1}
+            end
+
+            -- Go to previous line
+            y = y - 1
+            cur_line = window.buffer.content[y]
+            reversed = cur_line:reverse()
+            wordEnd_rev = findEndOfWord(reversed, 1)
+            if wordEnd_rev ~= nil then
+                x = #cur_line - wordEnd_rev + 1
+                goto continue
+            else
+                x = 1
+                goto continue
+            end
+            ::continue::
+        end
+        return {x, y}
+    end
+})
+
+registerMotion({
     key = "f",
     execute = function(window, count, args)
         local cursor = window.cursor
@@ -305,13 +439,37 @@ registerMotion({
                 local char = line:sub(i,i)
                 if char == args then
                     x = i
-                    goto continue
+                    break
                 end
             end
-            ::continue::
         end
         return {x, cursor[2]}
     end
 })
 
+
+registerMotion({
+    key = "F",
+    execute = function(window, count, args)
+        local cursor = window.cursor
+        if #args == 0 then
+            return false
+        end
+        local line = window.buffer.content[cursor[2]]
+        local x = cursor[1]
+        for j=1, count do
+            if x == 1 then
+                return cursor
+            end
+            for i = x - 1, 1, -1 do
+                local char = line:sub(i,i)
+                if char == args then
+                    x = i
+                    break
+                end
+            end
+        end
+        return {x, cursor[2]}
+    end
+})
 return mod
