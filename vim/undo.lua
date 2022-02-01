@@ -216,6 +216,7 @@ function DeleteNormalChange:undo(buffer)
 
     buffer.content[cursor[2] + #self.text - 2] = self.text[#self.text] .. after
     buffer:colorize(cursor[2] + #self.text - 2)
+    return cursor
 end
 
 function DeleteNormalChange:redo(buffer)
@@ -224,6 +225,7 @@ function DeleteNormalChange:redo(buffer)
     buffer:deleteNormal(self.start, self.fin)
 
     buffer.undo_tree.locked = false
+    return self.start
 end
 
 function AddLineChange.new(line_no, line)
