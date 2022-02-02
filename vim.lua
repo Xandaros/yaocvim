@@ -41,6 +41,7 @@ local function createInitialTab(args)
     local left_reserve = 0
 
     local first_buffer = Buffer.new()
+    first_buffer.content = {""}
     if #args > 0 then
         local file = io.open(args[1])
         if file ~= nil then
@@ -55,8 +56,6 @@ local function createInitialTab(args)
 
         first_buffer.file = args[1]
         first_buffer.name = args[1]
-    else
-        first_buffer.content = {""}
     end
     first_buffer.active = true
 
