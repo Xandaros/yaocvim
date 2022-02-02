@@ -84,15 +84,15 @@ function mod.keyPress(event)
 end
 
 function mod.render()
-    local y = screen_dim[2] - #mod.visible_lines
-    gpu.fill(1, y, screen_dim[1], screen_dim[2] + 1, " ")
+    local y = screen_dim[2] - math.max(1, #mod.visible_lines) + 1
     if #mod.visible_lines > 1 then
         y = y - 1
     end
+    gpu.fill(1, y, screen_dim[1], screen_dim[2], " ")
     for i=1, #mod.visible_lines do
         local line = mod.visible_lines[i]
         colors.setColor(line[1])
-        gpu.set(1, y + i, line[2])
+        gpu.set(1, y + i - 1, line[2])
         colors.setColor("Normal")
     end
     if mod.bottom then
