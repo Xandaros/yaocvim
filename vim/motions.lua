@@ -431,22 +431,48 @@ registerMotion({
         end
         local line = window.buffer.content[cursor[2]]
         local x = cursor[1]
+        local found = false
         for j=1, count do
             if x == #line then
-                return cursor
+                return nil
             end
             for i = x + 1, #line do
                 local char = line:sub(i,i)
                 if char == args then
+                    found = true
                     x = i
                     break
                 end
             end
         end
+        if not found then
+            return nil
+        end
         return {x, cursor[2]}
     end
 })
 
+registerMotion({
+    key = "t",
+    execute = function(window, count, args)
+        local cursor = mod.motions["f"].execute(window, 1, args)
+        if not cursor then
+            return cursor
+        end
+        return {cursor[1] - 1, cursor[2]}
+    end
+})
+
+registerMotion({
+    key = "T",
+    execute = function(window, count, args)
+        local cursor = mod.motions["F"].execute(window, 1, args)
+        if not cursor then
+            return cursor
+        end
+        return {cursor[1] + 1, cursor[2]}
+    end
+})
 
 registerMotion({
     key = "F",
@@ -457,17 +483,22 @@ registerMotion({
         end
         local line = window.buffer.content[cursor[2]]
         local x = cursor[1]
+        local found = false
         for j=1, count do
             if x == 1 then
-                return cursor
+                return nil
             end
             for i = x - 1, 1, -1 do
                 local char = line:sub(i,i)
                 if char == args then
+                    found = true
                     x = i
                     break
                 end
             end
+        end
+        if not found then
+            return nil
         end
         return {x, cursor[2]}
     end
