@@ -409,4 +409,18 @@ registerOperator({
     end
 })
 
+registerOperator({
+    key = "<C-w>j",
+    execute = function(window, count, motion_count, motion, motion_args)
+        Tab.getCurrent():windowDown()
+    end
+})
+
+registerOperator({
+    key = "<C-w>k",
+    execute = function(window, count, motion_count, motion, motion_args)
+        Tab.getCurrent():windowUp()
+    end
+})
+
 return mod

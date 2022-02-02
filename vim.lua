@@ -59,7 +59,7 @@ local function createInitialTab(args)
     end
     first_buffer.active = true
 
-    Tab.new(first_buffer, left_reserve + 1, 1, screen_dim[1] - left_reserve - 1, screen_dim[2] - bottom_reserve - 1)
+    Tab.new(first_buffer, left_reserve + 1, 1, screen_dim[1] - left_reserve - 1, 49)--screen_dim[2] - bottom_reserve)
 end
 
 local function main(args)

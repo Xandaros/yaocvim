@@ -145,6 +145,16 @@ registerCommand({
 })
 
 registerCommand({
+    aliases = {"split", "sp"},
+    default_range = "",
+    range_handler = range_handlers.none,
+    execute = function(self, invoc)
+        local tab = Tab.getCurrent()
+        tab:split()
+    end
+})
+
+registerCommand({
     aliases = {"edit", "e"},
     default_range = "",
     range_handler = range_handlers.none,

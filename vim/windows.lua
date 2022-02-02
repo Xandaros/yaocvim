@@ -49,8 +49,8 @@ end
 --- May be out of bounds if the location is not visible
 function Window:textToScreenCoords(coords)
     local x, y = table.unpack(coords)
-    local ret_x = x - self.screen[1] + 1
-    local ret_y = y - self.screen[2] + 1
+    local ret_x = self.x + x - self.screen[1]
+    local ret_y = self.y + y - self.screen[2]
     return {ret_x, ret_y}
 end
 
@@ -64,14 +64,14 @@ end
 
 function Window:updateScroll()
     local cur = self:textToScreenCoords(self.cursor)
-    if cur[1] < 1 then
-        self:scrollX(cur[1] - 1)
-    elseif cur[1] > self.w + 1 then
-        self:scrollX(cur[1] - self.w - 1)
-    elseif cur[2] < 1 then
-        self:scrollY(cur[2] - 1)
-    elseif cur[2] > self.h + 1 then
-        self:scrollY(cur[2] - self.h - 1)
+    if cur[1] < self.x then
+        self:scrollX(cur[1] - self.x)
+    elseif cur[1] > self.x + self.w then
+        self:scrollX(cur[1] - self.x - self.w)
+    elseif cur[2] < self.y then
+        self:scrollY(cur[2] - self.y)
+    elseif cur[2] > self.y + self.h - 1 then
+        self:scrollY(cur[2] - self.y - self.h + 1)
     end
 end
 
@@ -141,7 +141,7 @@ function Window:render(redraw)
     end
 
     local cur_y = self.y
-    for idx=self.screen[2], self.screen[2] + self.h do
+    for idx=self.screen[2], self.screen[2] + self.h - 1 do
         local line = buffer.colorized_content[idx]
         if redraw or not lineEquals(line, self.previous_content[cur_y]) or cur_y == self.previous_cursor[2] then
             self.previous_content[cur_y] = line
